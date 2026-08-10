@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-storage",
   "description": "Local database and document persistence management using Dexie.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "iss-tools",
   "keywords": [
     "utils",
