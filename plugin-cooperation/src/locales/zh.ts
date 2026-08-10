@@ -1,0 +1,20 @@
+export default {
+  cooperationTitle: '实时协作',
+  inviteDescription: '邀请他人协作绘图。',
+  privacyNotice: '别担心，会话是端到端加密、完全私密的。即使是我们的服务器也无法看到您绘制的内容。',
+  startSession: '开始会话',
+  modalTitle: '👥 协作与分享',
+  editSessionTitle: '可编辑会话',
+  editSessionDesc: '受邀者可以实时编辑和修改您的画布。',
+  sessionLink: '会话链接',
+  copyBtn: '复制',
+  copySuccessMsg: '链接已复制到剪贴板！',
+  copyFailedMsg: '复制失败，请手动拼接URL',
+  viewSessionTitle: '只读分享链接',
+  viewSessionDesc: '受邀者只能查看画布内容，无法进行任何编辑。',
+  encryptionNotice: '🔒 会话已通过 AES-256 端到端加密',
+  stopSession: '停止会话',
+  shareLink: '分享链接',
+  cooperationInvite: '邀请协作',
+  cooperationConnected: '协作已连接'
+};

@@ -1,0 +1,20 @@
+export default {
+  cooperationTitle: 'Real-time Collaboration',
+  inviteDescription: 'Invite others to draw together.',
+  privacyNotice: 'Don\'t worry, sessions are end-to-end encrypted and completely private. Even our servers cannot see what you draw.',
+  startSession: 'Start Session',
+  modalTitle: '👥 Collaborate & Share',
+  editSessionTitle: 'Editable Session',
+  editSessionDesc: 'Invitees can edit and modify your canvas in real-time.',
+  sessionLink: 'Session Link',
+  copyBtn: 'Copy',
+  copySuccessMsg: 'Link copied to clipboard!',
+  copyFailedMsg: 'Copy failed, please assemble URL manually',
+  viewSessionTitle: 'Read-only Share Link',
+  viewSessionDesc: 'Invitees can only view the canvas content, without editing permissions.',
+  encryptionNotice: '🔒 Session is end-to-end encrypted via AES-256',
+  stopSession: 'Stop Session',
+  shareLink: 'Share Link',
+  cooperationInvite: 'Invite Collaborators',
+  cooperationConnected: 'Collaboration Connected'
+};

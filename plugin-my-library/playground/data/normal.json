@@ -1,0 +1,70 @@
+[
+  {
+    "id": "header_text",
+    "type": "div",
+    "x": 300,
+    "y": 50,
+    "width": 400,
+    "height": 60,
+    "props": {
+      "style": "font-size: 32px; font-weight: bold; color: #ffffff; text-align: center; line-height: 60px; background: linear-gradient(90deg, #ff8a00, #e52e71); border-radius: 8px;"
+    },
+    "slots": {
+      "default": "Welcome to Vue Canvas Engine"
+    }
+  },
+  {
+    "id": "info_card",
+    "type": "div",
+    "x": 250,
+    "y": 150,
+    "width": 500,
+    "height": 200,
+    "props": {
+      "style": "background: #2a2a2a; border: 1px solid #444; border-radius: 12px; padding: 20px; color: #ddd; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);"
+    },
+    "slots": {
+      "default": "This is a normal dashboard template. No animations are configured here. You can freely drag, resize, and edit these components."
+    }
+  },
+  {
+    "id": "action_btn1",
+    "type": "el-button",
+    "x": 350,
+    "y": 400,
+    "width": 120,
+    "height": 40,
+    "props": {
+      "type": "primary"
+    },
+    "slots": {
+      "default": "Confirm"
+    }
+  },
+  {
+    "id": "action_btn2",
+    "type": "el-button",
+    "x": 500,
+    "y": 400,
+    "width": 120,
+    "height": 40,
+    "props": {
+      "type": "danger",
+      "plain": true
+    },
+    "slots": {
+      "default": "Cancel"
+    }
+  },
+  {
+    "id": "input_box",
+    "type": "el-input",
+    "x": 350,
+    "y": 460,
+    "width": 270,
+    "height": 40,
+    "props": {
+      "placeholder": "Enter your text here..."
+    }
+  }
+]

@@ -1,0 +1,173 @@
+<template>
+  <div class="bottom-right-help" :class="{ dark: isDarkTheme }">
+    <button class="icon-btn" @click="toggleFullscreen" :title="t('settings.fullscreen')">
+      <svg v-if="!isFullscreen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+      </svg>
+      <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+      </svg>
+    </button>
+    <button class="icon-btn" @click="previewCurrent" :title="t('controls.previewCurrent')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+    </button>
+    <button class="icon-btn" @click="previewPPT" :title="t('controls.previewPPT')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h20"></path><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"></path><path d="m7 21 5-5 5 5"></path>
+      </svg>
+    </button>
+    <button class="icon-btn" @click="openAbout" :title="t('controls.aboutUs')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+    </button>
+    <button class="icon-btn help-btn" @click="openHelp" :title="t('controls.help')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </button>
+    <HelpModal v-model="isHelpOpen" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, h } from 'vue';
+import { useCanvasContext } from '@iss-ai/ppt-board';
+import { createDiscreteApi, darkTheme } from 'naive-ui';
+import HelpModal from './HelpModal.vue';
+import { useI18n } from '../composables/useI18n';
+
+const ctx = useCanvasContext();
+const { t } = useI18n();
+
+const isHelpOpen = ref(false);
+
+const isDarkTheme = computed(() => {
+  return ctx.state?.editor?.theme === 'dark';
+});
+
+const { dialog } = createDiscreteApi(['dialog'], {
+  configProviderProps: computed(() => ({
+    theme: isDarkTheme.value ? darkTheme : undefined
+  }))
+});
+
+const openHelp = () => {
+  isHelpOpen.value = true;
+};
+
+const previewCurrent = () => {
+  if (ctx.api?.presentation?.start) {
+    ctx.api.presentation.start({ autoPlay: true, presentationMode: 'ppt' });
+  } else {
+    ctx.api?.editor?.setParams?.({ mode: 'preview' });
+  }
+};
+
+const previewPPT = () => {
+  if (ctx.api?.presentation?.start) {
+    ctx.api.presentation.start({ autoPlay: true, presentationMode: 'ppt', startSlide: 0 });
+  } else {
+    ctx.api?.editor?.setParams?.({ mode: 'preview' });
+  }
+};
+
+const openAbout = () => {
+  dialog.info({
+    title: t('controls.aboutUs'),
+    style: 'width: 500px;',
+    content: () => h('div', { style: 'display: flex; flex-direction: column; gap: 12px; margin-top: 12px;' }, [
+      h('div', { style: 'display: flex; align-items: center; gap: 12px;' }, [
+        h('div', { style: 'background: var(--n-primary-color, #6366f1); color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;' }, 'P'),
+        h('div', null, [
+          h('h3', { style: 'margin: 0; font-size: 18px; color: var(--n-text-color);' }, t('about.title')),
+          h('p', { style: 'margin: 4px 0 0; font-size: 13px; color: var(--n-text-color-3);' }, t('about.subtitle'))
+        ])
+      ]),
+      h('p', { style: 'margin: 0; font-size: 14px; line-height: 1.6; color: var(--n-text-color-2);' }, t('about.desc')),
+      h('h4', { style: 'margin: 8px 0 0; font-size: 15px; color: var(--n-text-color);' }, t('about.featuresTitle')),
+      h('ul', { style: 'margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--n-text-color-2); display: flex; flex-direction: column; gap: 4px;' }, [
+        h('li', null, [h('strong', null, t('about.f1Title')), h('span', null, t('about.f1Desc'))]),
+        h('li', null, [h('strong', null, t('about.f2Title')), h('span', null, t('about.f2Desc'))]),
+        h('li', null, [h('strong', null, t('about.f3Title')), h('span', null, t('about.f3Desc'))]),
+        h('li', null, [h('strong', null, t('about.f4Title')), h('span', null, t('about.f4Desc'))])
+      ])
+    ]),
+    positiveText: t('about.github'),
+    onPositiveClick: () => window.open('https://github.com/iss-tools/ppt-board', '_blank')
+  });
+};
+
+const isFullscreen = ref(!!document.fullscreenElement);
+
+const toggleFullscreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => {
+      isFullscreen.value = true;
+      ctx.api?.editor?.setParams?.({ fullScreen: true });
+    }).catch(() => {});
+  } else {
+    document.exitFullscreen().then(() => {
+      isFullscreen.value = false;
+      ctx.api?.editor?.setParams?.({ fullScreen: false });
+    }).catch(() => {});
+  }
+};
+
+document.addEventListener('fullscreenchange', () => {
+  isFullscreen.value = !!document.fullscreenElement;
+});
+</script>
+
+<style scoped>
+.bottom-right-help {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9;
+  display: flex;
+  gap: 12px;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: var(--canvas-panel-bg, #ffffff);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--canvas-text-color, #495057);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  border: 1px solid var(--canvas-border-color, #e9ecef);
+}
+
+.icon-btn:hover {
+  background: var(--canvas-btn-hover-bg, #f1f3f5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.icon-btn:active {
+  transform: translateY(0);
+}
+
+/* Dark Theme Overrides */
+.dark .icon-btn {
+  background: #232324;
+  color: #e5e7eb;
+  border-color: #3f3f46;
+}
+
+.dark .icon-btn:hover {
+  background: #3f3f46;
+}
+</style>

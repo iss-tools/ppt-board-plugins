@@ -1,0 +1,94 @@
+import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
+import MyLibraryPanel from './MyLibraryPanel.vue';
+import { initStore, pluginState, addPersonalComponent } from './store';
+import { parseExcalidrawElements } from './utils/excalidraw-parser';
+
+export const MyLibraryPlugin: CanvasPlugin = {
+  name: 'vue-canvas-plugin-my-library',
+
+  install(ctx: CanvasPluginContext) {
+    console.log('[MyLibraryPlugin] 🚀 Plugin Installed Successfully!');
+
+    // Initialize state & sync with persistent data
+    initStore(ctx);
+
+    // Register Overlay panel which now includes the toggle button
+    ctx.api.editor.registerOverlay({ component: MyLibraryPanel });
+
+    // Register addToLibrary handler to save components to personal library
+    ctx.hooks.on('addToLibrary', async (elements: any[]) => {
+      try {
+        await addPersonalComponent(elements);
+        // Optionally auto-open the panel to show the newly added item
+        pluginState.isPanelVisible = true;
+      } catch (e) {
+        console.error('Failed to add to library', e);
+      }
+    });
+
+    // Register paste handler to intercept excalidraw components
+    ctx.hooks.on('paste', (e: any, pasteContext: any, text: string, html: string, mouseX: number, mouseY: number) => {
+      console.log('[MyLibraryPlugin] Received paste event!', { handled: pasteContext.handled, textLength: text?.length, htmlLength: html?.length });
+      if (pasteContext.handled) return;
+      try {
+        console.log('[MyLibraryPlugin] Attempting to parse JSON...');
+        const parsed = JSON.parse(text);
+        console.log('[MyLibraryPlugin] Parsed JSON:', { type: parsed?.type, hasElements: Array.isArray(parsed?.elements) });
+        if (parsed && parsed.type === 'excalidraw/clipboard' && Array.isArray(parsed.elements)) {
+          console.log('[MyLibraryPlugin] Match! Processing excalidraw elements...');
+          pasteContext.handled = true;
+          
+          const newElements = parseExcalidrawElements(parsed.elements);
+          if (newElements.length === 0) {
+            console.log('[MyLibraryPlugin] No valid elements found after parsing.');
+            return;
+          }
+
+          // Center elements on mouse cursor
+          let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+          newElements.forEach(el => {
+            if (el.x < minX) minX = el.x;
+            if (el.y < minY) minY = el.y;
+            if (el.x + (el.width || 0) > maxX) maxX = el.x + (el.width || 0);
+            if (el.y + (el.height || 0) > maxY) maxY = el.y + (el.height || 0);
+          });
+
+          const centerX = minX + (maxX - minX) / 2;
+          const centerY = minY + (maxY - minY) / 2;
+          const diffX = mouseX - centerX;
+          const diffY = mouseY - centerY;
+
+          const newGroupIds: Record<string, string> = {};
+          ctx.state.runtime.selectedIds.clear();
+
+          newElements.forEach((el, idx) => {
+            const newId = `${el.type}_${Date.now()}_${idx}`;
+            el.id = newId;
+            el.x += diffX;
+            el.y += diffY;
+
+            if (el.groupId) {
+              if (!newGroupIds[el.groupId]) {
+                newGroupIds[el.groupId] = `group_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+              }
+              el.groupId = newGroupIds[el.groupId];
+            }
+
+            ctx.api.elements.add(el);
+            ctx.state.runtime.selectedIds.add(newId);
+          });
+          console.log('[MyLibraryPlugin] Successfully pasted excalidraw elements:', newElements.length);
+        }
+      } catch (err) {
+        console.error('[MyLibraryPlugin] Paste handler error:', err);
+      }
+    });
+  },
+
+  destroy() {
+    console.log('[MyLibraryPlugin] 🛑 Plugin Destroyed.');
+    if ((this as any)._cleanup) {
+      (this as any)._cleanup();
+    }
+  },
+};
