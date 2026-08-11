@@ -5,7 +5,7 @@ export default {
     settings: 'Canvas Settings',
     export: 'Export image...',
     exportAll: 'Export All Data',
-    canvasBg: 'Canvas background',
+    canvasBg: 'Canvas Settings',
     find: 'Find',
     help: 'Help',
     reset: 'Reset canvas',
@@ -60,6 +60,8 @@ export default {
     autoStep: 'Auto Step (PPT)',
     roughToolbar: 'Rough Style Toolbar',
     rulers: 'Show Rulers',
+    showSubtitle: 'Show Component Subtitles',
+    showPreviewControls: 'Show Preview Controls',
   },
   controls: {
     zoomOut: 'Zoom out',

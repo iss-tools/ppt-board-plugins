@@ -84,6 +84,14 @@
         <n-switch :value="currentRoughToolbar" @update:value="updateRoughToolbar" size="small" />
       </div>
       <div class="setting-item">
+        <span class="setting-label">{{ t('settings.showPreviewControls') }}</span>
+        <n-switch :value="currentPreviewControls" @update:value="updatePreviewControls" size="small" />
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">{{ t('settings.showSubtitle') }}</span>
+        <n-switch :value="currentSubtitle" @update:value="updateSubtitle" size="small" />
+      </div>
+      <div class="setting-item">
         <span class="setting-label">{{ t('settings.rulers') }}</span>
         <n-switch :value="currentRulers" @update:value="updateRulers" size="small" />
       </div>
@@ -175,10 +183,11 @@ const customHeight = ref(1080);
 const applyCustomResolution = () => {
   if (customWidth.value && customHeight.value) {
     if (ctx.api?.editor && typeof (ctx.api.editor as any).setResolution === 'function') {
-      (ctx.api.editor as any).setResolution(customWidth.value, customHeight.value);
+      (ctx.api.editor as any).setResolution(customWidth.value, customHeight.value, 'custom');
     } else if (ctx.state?.document?.config) {
       ctx.state.document.config.width = customWidth.value;
       ctx.state.document.config.height = customHeight.value;
+      ctx.state.document.config.ratio = 'custom' as any;
     }
   }
 };
@@ -222,6 +231,22 @@ const updateRoughToolbar = (val: boolean) => {
   }
 };
 
+// Preview Controls
+const currentPreviewControls = computed(() => !!ctx.state?.editor?.showPreviewControls);
+const updatePreviewControls = (val: boolean) => {
+  if (ctx.api?.editor?.setParams) {
+    ctx.api.editor.setParams({ showPreviewControls: val });
+  }
+};
+
+// Subtitle
+const currentSubtitle = computed(() => !!ctx.state?.editor?.showElementDescription);
+const updateSubtitle = (val: boolean) => {
+  if (ctx.api?.editor?.setParams) {
+    ctx.api.editor.setParams({ showElementDescription: val });
+  }
+};
+
 // Rulers
 const currentRulers = computed(() => !!ctx.state?.editor?.showRulers);
 const updateRulers = (val: boolean) => {
@@ -244,6 +269,8 @@ const updateRulers = (val: boolean) => {
   gap: 20px;
   z-index: 200;
   cursor: default;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
 }
 
 .flyout-title {

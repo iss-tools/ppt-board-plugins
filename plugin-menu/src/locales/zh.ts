@@ -5,7 +5,7 @@ export default {
     settings: '画布设置',
     export: '导出图片...',
     exportAll: '导出所有数据',
-    canvasBg: '画布背景',
+    canvasBg: '画布设置',
     find: '查找',
     help: '帮助',
     reset: '重置画布',
@@ -60,6 +60,8 @@ export default {
     autoStep: '自动计算步骤 (PPT)',
     roughToolbar: '手绘风格工具栏',
     rulers: '显示标尺',
+    showSubtitle: '显示组件字幕',
+    showPreviewControls: '显示预览控制面板',
   },
   controls: {
     zoomOut: '缩小',
