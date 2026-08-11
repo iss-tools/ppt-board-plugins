@@ -7,6 +7,12 @@
           <n-form-item label="ID">
             <n-input v-model:value="commonAttrs.id" @change="updateAttr('id', commonAttrs.id)" :placeholder="t('tabs.element_id')" />
           </n-form-item>
+          <n-form-item :label="t('tabs.element_name')">
+            <n-input v-model:value="commonAttrs.name" @change="updateAttr('name', commonAttrs.name)" placeholder="" />
+          </n-form-item>
+          <n-form-item :label="t('tabs.element_description')">
+            <n-input v-model:value="commonAttrs.description" @change="updateAttr('description', commonAttrs.description)" type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" placeholder="" />
+          </n-form-item>
           <n-form-item :label="t('tabs.radius')">
             <div style="display: flex; align-items: center; width: 100%;">
               <n-slider v-model:value="styleAttrs.borderRadius" :min="0" :max="100" :step="1" @update:value="v => updateStyleAttr('border-radius', v + 'px')" style="flex: 1;" />
@@ -110,7 +116,9 @@ const { t } = useI18n();
 const pluginApi = ctx.api;
 
 const commonAttrs = ref({
-  id: ''
+  id: '',
+  name: '',
+  description: ''
 });
 
 const styleAttrs = ref({
@@ -133,6 +141,8 @@ const syncFromElements = () => {
 
   const elProps = first.props || {};
   commonAttrs.value.id = first.id || '';
+  commonAttrs.value.name = first.name || '';
+  commonAttrs.value.description = first.description || '';
 
   let parsedStyle: Record<string, any> = {};
   if (typeof elProps.style === 'string') {
@@ -207,6 +217,10 @@ const updateAttr = (key: string, value: string) => {
   props.elements.forEach(el => {
     if (key === 'id') {
       pluginApi.elements.update(el.id, { id: value });
+    } else if (key === 'name') {
+      pluginApi.elements.update(el.id, { name: value });
+    } else if (key === 'description') {
+      pluginApi.elements.update(el.id, { description: value });
     } else {
       const newProps = { ...(el.props || {}) };
       if (value) {

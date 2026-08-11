@@ -175,6 +175,8 @@ export default {
   tabs: {
     "common_props_common": "常用属性 (Common)",
     "element_id": "元素 ID",
+    "element_name": "名称",
+    "element_description": "描述",
     "inline_style_raw_json": "内联 Style (Raw/JSON)",
     "color_red_or_json": "color: red; 或 { \"color\": \"red\" }",
     "component_props_data": "组件 Props 数据",

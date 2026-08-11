@@ -175,6 +175,8 @@ export default {
   tabs: {
     "common_props_common": "Common Props",
     "element_id": "Element ID",
+    "element_name": "Name",
+    "element_description": "Description",
     "inline_style_raw_json": "Inline Style (Raw/JSON)",
     "color_red_or_json": "color: red; or { \"color\": \"red\" }",
     "component_props_data": "Component Props Data",
