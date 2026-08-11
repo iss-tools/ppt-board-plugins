@@ -107,10 +107,10 @@
     "vite-plugin-dts": "^3.7.0",
     "vue": "^3.0.0",
     "vue-tsc": "^2.1.10",
-    "@iss-ai/ppt-board": "workspace:*"
+    "@iss-ai/ppt-board": "^0.0.7"
   },
   "peerDependencies": {
-    "@iss-ai/ppt-board": "workspace:*",
+    "@iss-ai/ppt-board": "^0.0.7",
     "vue": "^3.0.0",
     "animate.css": "^4.1.1"
   },
