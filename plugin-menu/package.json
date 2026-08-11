@@ -12,13 +12,14 @@
     "umd",
     "cjs"
   ],
-  "homepage": "",
+  "homepage": "https://github.com/iss-tools/ppt-board-plugins#readme",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/iss-tools/ppt-board-plugins.git",
+    "directory": "plugin-menu"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/iss-tools/ppt-board-plugins/issues"
   },
   "private": false,
   "publishConfig": {
