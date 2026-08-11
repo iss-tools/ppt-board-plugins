@@ -2,10 +2,10 @@ export default {
   menu: {
     open: '打开',
     saveTo: '保存到...',
-    settings: '画布设置',
     export: '导出图片...',
     exportAll: '导出所有数据',
-    canvasBg: '画布设置',
+    settings: '画布高级设置',
+    canvasBg: '画布背景',
     find: '查找',
     help: '帮助',
     reset: '重置画布',

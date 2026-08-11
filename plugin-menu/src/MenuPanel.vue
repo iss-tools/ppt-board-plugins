@@ -267,6 +267,7 @@ const menuOptions = computed(() => [
     key: 'bg_custom',
     type: 'render',
     render: () => {
+      const PRESET_BGS = ['#ffffff', '#f8f9fa', '#f1f8ff', '#fffbeb', '#fff5f5'];
       const currentBg = ctx.state.document?.config?.background || '#ffffff';
 
       return h('div', {
@@ -274,6 +275,41 @@ const menuOptions = computed(() => [
         onClick: (e: Event) => e.stopPropagation()
       }, [
         h('span', null, t('menu.canvasBg')),
+        h('div', { style: "display: flex; gap: 4px; align-items: center;" }, [
+          ...PRESET_BGS.map(bg => h('div', {
+            class: ["menu-bg-swatch", { active: currentBg === bg }],
+            style: `background: ${bg};`,
+            onClick: () => setCanvasBackground(bg)
+          })),
+          h('div', { style: 'width: 1px; height: 12px; background: var(--canvas-border-color, #e5e5e5); margin: 0 4px;' }),
+          h(NPopover, {
+            trigger: 'click',
+            placement: 'right-start',
+            showArrow: true,
+            onClickoutside: (e: Event) => e.stopPropagation()
+          }, {
+            trigger: () => h('div', {
+              class: ["menu-bg-swatch", "colorpicker-swatch"],
+              style: `background: ${PRESET_BGS.includes(currentBg) ? '#ffffff' : currentBg};`
+            }),
+            default: () => h(ColorPickerPanel, {
+              modelValue: currentBg,
+              'onUpdate:modelValue': (c: string) => setCanvasBackground(c)
+            })
+          })
+        ])
+      ]);
+    }
+  },
+  {
+    key: 'settings_custom',
+    type: 'render',
+    render: () => {
+      return h('div', {
+        class: "menu-custom-row",
+        onClick: (e: Event) => e.stopPropagation()
+      }, [
+        h('span', null, t('menu.settings')),
         h(NPopover, {
           trigger: 'click',
           placement: 'right-start',
@@ -445,7 +481,7 @@ const handleSelect = (key: string | number) => {
   } else if (key === 'help') {
     isHelpOpen.value = true;
   } else if (key === 'github') {
-    window.open('https://github.com/iss-tools/ppt-board', '_blank');
+    window.open('https://github.com/iss-tools/ppt-board-web', '_blank');
   }
 };
 </script>
@@ -519,5 +555,28 @@ const handleSelect = (key: string | number) => {
 .menu-settings-btn:hover {
   background-color: var(--n-primary-color-hover, rgba(128, 128, 128, 0.3));
   color: var(--n-text-color);
+}
+
+.menu-bg-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid var(--n-border-color, #e5e5e5);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.menu-bg-swatch:hover {
+  transform: scale(1.1);
+}
+
+.menu-bg-swatch.active {
+  border-color: var(--n-primary-color, #6366f1);
+  box-shadow: 0 0 0 1px var(--n-primary-color, #6366f1);
+}
+
+.colorpicker-swatch {
+  border-style: dashed;
 }
 </style>

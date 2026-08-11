@@ -2,10 +2,10 @@ export default {
   menu: {
     open: 'Open',
     saveTo: 'Save to...',
-    settings: 'Canvas Settings',
     export: 'Export image...',
     exportAll: 'Export All Data',
-    canvasBg: 'Canvas Settings',
+    settings: 'Canvas Settings',
+    canvasBg: 'Canvas background',
     find: 'Find',
     help: 'Help',
     reset: 'Reset canvas',
