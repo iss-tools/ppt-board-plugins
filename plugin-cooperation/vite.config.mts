@@ -2,12 +2,14 @@ import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import dts from 'vite-plugin-dts';
 import vue from '@vitejs/plugin-vue';
+import UnoCSS from 'unocss/vite';
 
 export default defineConfig({
   envPrefix: ['VITE_', 'ABLY_'],
   plugins: [
-    cssInjectedByJsPlugin(),
     vue(),
+    UnoCSS(),
+    cssInjectedByJsPlugin(),
     dts({
       rollupTypes: true,
       tsconfigPath: './tsconfig.json',

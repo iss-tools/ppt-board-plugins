@@ -1,3 +1,4 @@
+import 'virtual:uno.css';
 import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
 import CooperationPanel from './CooperationPanel.vue';
 import { initStore, ablySync } from './store';
