@@ -109,7 +109,7 @@
     "@iss-ai/ppt-board": "workspace:*"
   },
   "peerDependencies": {
-    "@iss-ai/ppt-board": "latest",
+    "@iss-ai/ppt-board": "workspace:*",
     "vue": "^3.0.0",
     "animate.css": "^4.1.1"
   },

@@ -109,7 +109,7 @@
   },
   "peerDependencies": {
     "vue": "^3.0.0",
-    "@iss-ai/ppt-board": "^0.0.2",
+    "@iss-ai/ppt-board": "workspace:*",
     "dexie": "^4.4.4",
     "naive-ui": "^2.44.1"
   },
