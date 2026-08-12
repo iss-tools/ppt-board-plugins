@@ -69,6 +69,7 @@
     "@iss-ai/ppt-board": "workspace:*",
     "@types/jest": "^29.5.14",
     "@types/json-bigint": "^1.0.4",
+    "@types/katex": "^0.16.8",
     "@types/lodash-es": "^4.17.10",
     "@types/node": "^26.1.1",
     "@types/nprogress": "^0.2.3",
@@ -105,7 +106,6 @@
     "vite-plugin-css-injected-by-js": "^3.3.1",
     "vite-plugin-dts": "^3.7.0",
     "vue": "^3.0.0",
-    "@types/katex": "^0.16.8",
     "vue-tsc": "^2.1.10"
   },
   "peerDependencies": {
@@ -113,6 +113,7 @@
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "katex": "^0.18.4"
+    "katex": "^0.18.4",
+    "naive-ui": "^2.44.1"
   }
 }

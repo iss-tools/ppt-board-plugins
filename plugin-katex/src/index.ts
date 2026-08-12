@@ -1,6 +1,4 @@
 import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
-import { ref } from 'vue';
-import FormulaPanel from './components/FormulaPanel.vue';
 import MathElement from './components/MathElement.vue';
 import zhLocale from './locales/zh';
 import enLocale from './locales/en';
@@ -40,38 +38,6 @@ export const KatexPlugin: CanvasPlugin = {
       ctx.api.elements.register({ MathElement });
     }
 
-    // 3. Panel Visibility State
-    const isPanelVisible = ref(false);
-
-    // 4. Register Overlay
-    import('vue').then(({ h }) => {
-      ctx.api.editor.registerOverlay({
-        show: () => isPanelVisible.value,
-        component: {
-          render() {
-            return h(FormulaPanel, {
-              ctx: ctx,
-              onClose: () => {
-                isPanelVisible.value = false;
-              }
-            });
-          }
-        }
-      });
-    });
-
-    // 5. Register Toolbar Action
-    ctx.api.editor.registerToolbarItem({
-      id: 'plugin-katex-btn',
-      icon: '<b style="font-family: serif; font-size: 16px;">∑</b>', 
-      label: 'Formula',
-      tooltip: ctx.api.editor.t('katex.toolbar.tooltip'),
-      position: 'right',
-      onClick: () => {
-        isPanelVisible.value = !isPanelVisible.value;
-      },
-    });
-
     // 6. Handle Paste Event via hooks
     const handlePaste = (e: ClipboardEvent | null, pasteContext: any, rawText: string, html: string, mouseX: number, mouseY: number) => {
       // Only process paste if we are in edit mode
@@ -105,7 +71,7 @@ export const KatexPlugin: CanvasPlugin = {
           height: 100,
           props: {
             latex,
-            fontSize: 32,
+            fontSize: 24,
           }
         });
       }
