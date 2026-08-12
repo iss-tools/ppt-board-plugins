@@ -18,7 +18,7 @@ export default defineConfig({
     sourcemap: false,
     lib: {
       entry: './src/index.ts',
-      name: '$utils',
+      name: 'PluginStyleProps',
       fileName: (format) => `index.${format === 'es' ? 'esm' : (format === 'cjs' ? 'cjs' : format === 'iife' ? 'min' : format)}.js`,
       formats: ['es', 'cjs', 'umd', 'iife'],
     },
