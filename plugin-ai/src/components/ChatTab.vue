@@ -754,10 +754,11 @@ const handleKeydown = (e: KeyboardEvent) => {
 };
 
 
-const sendOptions = [
-  { label: '生成单页', key: 'single' },
-  { label: '生成多页', key: 'multi' }
-];
+const sendOptions = computed(() => [
+  { label: t('chat.send_single') || '生成单页', key: 'single' },
+  { label: t('chat.send_multi') || '生成多页', key: 'multi' },
+  { label: t('chat.img2component') || '图片转组件', key: 'img2component' }
+]);
 
 const handleSendOption = (key: string) => {
   handleSend(key);

@@ -53,6 +53,8 @@ export const buildVisualRequirements = (styleConfig: AIPromptStyle, scope: strin
     finalReq += `\n\n(请生成全新的单页 Slide JSON，并务必把你最终输出的 JSON 代码块包裹在 <data></data> 标签中)`;
   } else if (scope === 'multi') {
     finalReq += `\n\n(请生成完整多页 Document JSON，并务必把你最终输出的 JSON 代码块包裹在 <data></data> 标签中)`;
+  } else if (scope === 'img2component') {
+    finalReq += `\n\n(这是一张界面的截图/图片。请你扮演资深的 UI 工程师，**完美像素级复刻（Pixel-perfect）**图中的所有视觉内容，将其拆解并转化为本画布系统支持的可编辑组件（如 TextElement, ShapeElement 等）。\n请注意以下极其关键的要求：\n1. **绝对定位与尺寸**：仔细推算每个元素的 x, y 坐标以及 width, height 大小，确保它们在画布上的相对位置和比例与原图完全一致。\n2. **样式还原**：精准提取颜色、字体大小、粗细、圆角、对齐方式、边框和阴影等，并写入到组件的属性中。\n3. **内容拆解**：务必将文字和背景块、按钮、图标分开，绝不能用一整块内容敷衍了事。文字必须用 TextElement 保证后续可编辑，背景色块或线条使用相应的图元组件。\n4. **层级关系**：先生成的组件在底层，后生成的组件在上层。请先输出背景形状，再输出文字和前景。\n\n**极其重要**：请通过新增组件的方式还原这张图，返回RFC 6902 JSON Patch数组。\n你的 Patch 目标是一个【以组件ID为key的对象（Map）】，请在 Patch 中使用 "op": "add"，path 直接指向新组件ID（例如 \`"path": "/img2comp_123"\`）。\n**更重要**：请务必把你最终输出的 JSON 代码块包裹在 <data></data> 标签中，这对我解析非常重要！)`;
   }
 
   return finalReq;

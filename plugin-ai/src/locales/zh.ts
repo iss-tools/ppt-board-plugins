@@ -42,7 +42,10 @@ export default {
     "session_loaded": "已加载: ",
     "session_new": "已开启新会话",
     "session_empty": "暂无历史会话",
-    "clear_select": "✕ 清除选择"
+    "clear_select": "✕ 清除选择",
+    "send_single": "生成单页",
+    "send_multi": "生成多页",
+    "img2component": "图片转组件"
   },
   "provider": {
     "title": "API 供应商配置",

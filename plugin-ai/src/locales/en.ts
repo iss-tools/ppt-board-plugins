@@ -42,7 +42,10 @@ export default {
     "session_loaded": "Loaded: ",
     "session_new": "New session started",
     "session_empty": "No history",
-    "clear_select": "✕ Clear selection"
+    "clear_select": "✕ Clear selection",
+    "send_single": "Generate Single Slide",
+    "send_multi": "Generate Multi-slide",
+    "img2component": "Image to Component"
   },
   "provider": {
     "title": "API Providers",
