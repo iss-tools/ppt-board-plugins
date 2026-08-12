@@ -38,6 +38,41 @@ export const KatexPlugin: CanvasPlugin = {
       ctx.api.elements.register({ MathElement });
     }
 
+    // 3. Register Toolbar Button
+    if (ctx.api.editor && ctx.api.editor.registerToolbarItem) {
+      ctx.api.editor.registerToolbarItem({
+        id: 'katex-formula',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4H6l6 8-6 8h12"></path></svg>',
+        label: ctx.api.editor.t ? ctx.api.editor.t('katex.toolbar.tooltip') || '公式 (Formula)' : 'Formula',
+        onClick: () => {
+          // Get current view center to place the element
+          const { offsetX, offsetY, scale } = ctx.state.runtime;
+          const cx = (window.innerWidth / 2 - offsetX) / scale;
+          const cy = (window.innerHeight / 2 - offsetY) / scale;
+          
+          const newId = `MathElement_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+          ctx.api.elements.add({
+            id: newId,
+            type: 'MathElement',
+            x: cx - 100,
+            y: cy - 30,
+            width: 200,
+            height: 80,
+            props: {
+              latex: 'a^2 + b^2 = c^2',
+              fontSize: 32,
+            }
+          });
+          
+          // Select it automatically
+          if (ctx.state.runtime) {
+            ctx.state.runtime.selectedIds.clear();
+            ctx.state.runtime.selectedIds.add(newId);
+          }
+        }
+      });
+    }
+
     // 6. Handle Paste Event via hooks
     const handlePaste = (e: ClipboardEvent | null, pasteContext: any, rawText: string, html: string, mouseX: number, mouseY: number) => {
       // Only process paste if we are in edit mode
