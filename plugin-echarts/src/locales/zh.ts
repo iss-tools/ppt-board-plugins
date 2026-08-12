@@ -25,6 +25,16 @@ export default {
       insertChart: '作为数据图表插入',
       insertTable: '作为数据表格插入',
       cancel: '取消'
+    },
+    chartTypes: {
+      bar: '柱状图 (Bar)',
+      line: '折线图 (Line)',
+      pie: '饼图 (Pie)',
+      scatter: '散点图 (Scatter)',
+      funnel: '漏斗图 (Funnel)',
+      radar: '雷达图 (Radar)',
+      heatmap: '热力图 (Heatmap)',
+      candlestick: 'K线图 (Candlestick)'
     }
   }
 };

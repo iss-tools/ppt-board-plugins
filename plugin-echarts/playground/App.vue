@@ -5,7 +5,7 @@
       <p style="font-size: 12px; margin: 0;">Open console to see plugin event logs</p>
     </div>
     <div style="flex: 1; position: relative;">
-      <VueCanvasEditor ref="editorRef" :plugins="[EChartsPlugin]" />
+      <VueCanvasEditor language="en" ref="editorRef" :plugins="[EChartsPlugin]" />
     </div>
   </div>
 </template>

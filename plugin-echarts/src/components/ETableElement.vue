@@ -1,5 +1,5 @@
 <template>
-  <div class="vue-canvas-etable-element" :class="{ 'is-editing': isEditing }" :style="wrapperStyle">
+  <div class="vue-canvas-etable-element" :class="{ 'is-editing': isEditing, 'dark': isDark }" :style="wrapperStyle">
     <table class="etable">
       <thead v-if="headers.length > 0">
         <tr>
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useCanvasContext } from '@iss-ai/ppt-board';
 import type { CanvasElementData } from '@iss-ai/ppt-board';
 
 const props = defineProps<{
@@ -39,12 +40,16 @@ const emit = defineEmits<{
   (e: 'finishEdit'): void;
 }>();
 
+const ctx = useCanvasContext();
+const isDark = computed(() => ctx.state.editor?.theme === 'dark');
+
 const wrapperStyle = computed(() => {
   return {
     width: '100%',
     height: '100%',
     overflow: 'auto',
-    backgroundColor: (props.element.props?.backgroundColor as string) || '#ffffff',
+    backgroundColor: (props.element.props?.backgroundColor as string) || (isDark.value ? 'transparent' : '#ffffff'),
+    color: (props.element.props?.color as string) || (isDark.value ? '#e0e0e0' : '#333333'),
   };
 });
 
@@ -132,5 +137,24 @@ const onCellBlur = (e: Event, rIdx: number, cIdx: number) => {
 
 .etable tr:hover {
   background-color: #f1f1f1;
+}
+
+/* Dark Theme Overrides */
+.vue-canvas-etable-element.dark .etable th,
+.vue-canvas-etable-element.dark .etable td {
+  border-color: #444444;
+}
+
+.vue-canvas-etable-element.dark .etable th {
+  background-color: #333333;
+  color: #eeeeee;
+}
+
+.vue-canvas-etable-element.dark .etable tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.vue-canvas-etable-element.dark .etable tr:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 </style>

@@ -110,16 +110,16 @@ const panelStyle = computed(() => {
 
 const isChart = computed(() => selectedElement.value?.type === 'echarts');
 
-const chartTypeOptions = [
-  { label: '柱状图 (Bar)', value: 'bar' },
-  { label: '折线图 (Line)', value: 'line' },
-  { label: '饼图 (Pie)', value: 'pie' },
-  { label: '散点图 (Scatter)', value: 'scatter' },
-  { label: '漏斗图 (Funnel)', value: 'funnel' },
-  { label: '雷达图 (Radar)', value: 'radar' },
-  { label: '热力图 (Heatmap)', value: 'heatmap' },
-  { label: 'K线图 (Candlestick)', value: 'candlestick' },
-];
+const chartTypeOptions = computed(() => [
+  { label: t('echarts.chartTypes.bar'), value: 'bar' },
+  { label: t('echarts.chartTypes.line'), value: 'line' },
+  { label: t('echarts.chartTypes.pie'), value: 'pie' },
+  { label: t('echarts.chartTypes.scatter'), value: 'scatter' },
+  { label: t('echarts.chartTypes.funnel'), value: 'funnel' },
+  { label: t('echarts.chartTypes.radar'), value: 'radar' },
+  { label: t('echarts.chartTypes.heatmap'), value: 'heatmap' },
+  { label: t('echarts.chartTypes.candlestick'), value: 'candlestick' },
+]);
 
 const globalChartType = computed({
   get: () => {

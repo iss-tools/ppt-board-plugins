@@ -25,6 +25,16 @@ export default {
       insertChart: 'Insert as Data Chart',
       insertTable: 'Insert as Data Table',
       cancel: 'Cancel'
+    },
+    chartTypes: {
+      bar: 'Bar Chart',
+      line: 'Line Chart',
+      pie: 'Pie Chart',
+      scatter: 'Scatter Plot',
+      funnel: 'Funnel Chart',
+      radar: 'Radar Chart',
+      heatmap: 'Heatmap',
+      candlestick: 'Candlestick Chart'
     }
   }
 };
