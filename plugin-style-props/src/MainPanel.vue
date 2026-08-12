@@ -54,7 +54,7 @@ const isVisible = computed(() => selectedElements.value.length > 0);
   position: absolute;
   left: 16px;
   top: 16px;
-  width: 330px;
+  width: 335px;
   max-height: calc(100vh - 32px);
   background: #ffffff;
   border-radius: 8px;

@@ -294,6 +294,15 @@
               <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
           </button>
+          
+          <button class="color-btn custom-color-btn image-picker-btn"
+            :class="{ active: activeColorPicker === 'backgroundGradient' }"
+            @click="toggleColorPicker('backgroundGradient', $event)" :title="t('tabs.gradient') || '渐变预设'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a10 10 0 0 1 0 20v-20z"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -627,7 +636,7 @@
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
               <line x1="12" y1="8" x2="12" y2="4" stroke="#6366f1" stroke-width="2"></line>
               <line x1="12" y1="20" x2="12" y2="16" stroke="#6366f1" stroke-width="2"></line>
-              <rect x="8" y="9.5" width="8" height="5" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+              <rect x="9" y="10" width="6" height="4" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
             </svg>
           </button>
           <button class="icon-btn canvas-align-btn" @click="alignToCanvas('vcenter')" :title="t('tabs.canvas_vertical_center')">
@@ -636,18 +645,18 @@
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
               <line x1="4" y1="12" x2="8" y2="12" stroke="#6366f1" stroke-width="2"></line>
               <line x1="16" y1="12" x2="20" y2="12" stroke="#6366f1" stroke-width="2"></line>
-              <rect x="9.5" y="8" width="5" height="8" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+              <rect x="10" y="9" width="4" height="6" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
             </svg>
           </button>
           <button class="icon-btn canvas-align-btn" @click="alignToCanvas('center')" :title="t('tabs.canvas_center')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
-              <circle cx="12" cy="12" r="3.5" fill="#6366f1" stroke="none" opacity="0.8"></circle>
-              <line x1="12" y1="5" x2="12" y2="7" stroke="#6366f1" stroke-width="2"></line>
-              <line x1="12" y1="17" x2="12" y2="19" stroke="#6366f1" stroke-width="2"></line>
-              <line x1="5" y1="12" x2="7" y2="12" stroke="#6366f1" stroke-width="2"></line>
-              <line x1="17" y1="12" x2="19" y2="12" stroke="#6366f1" stroke-width="2"></line>
+              <circle cx="12" cy="12" r="2.5" fill="#6366f1" stroke="none" opacity="0.8"></circle>
+              <line x1="12" y1="5" x2="12" y2="8" stroke="#6366f1" stroke-width="2"></line>
+              <line x1="12" y1="16" x2="12" y2="19" stroke="#6366f1" stroke-width="2"></line>
+              <line x1="5" y1="12" x2="8" y2="12" stroke="#6366f1" stroke-width="2"></line>
+              <line x1="16" y1="12" x2="19" y2="12" stroke="#6366f1" stroke-width="2"></line>
             </svg>
           </button>
           <button class="icon-btn canvas-align-btn" @click="alignToCanvas('left')" :title="t('tabs.canvas_align_left')">
@@ -655,7 +664,7 @@
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
               <line x1="4" y1="5" x2="4" y2="19" stroke="#6366f1" stroke-width="2"></line>
-              <rect x="4" y="9.5" width="8" height="5" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+              <rect x="4" y="10" width="6" height="4" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
             </svg>
           </button>
           <button class="icon-btn canvas-align-btn" @click="alignToCanvas('right')" :title="t('tabs.canvas_align_right')">
@@ -663,7 +672,7 @@
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
               <line x1="20" y1="5" x2="20" y2="19" stroke="#6366f1" stroke-width="2"></line>
-              <rect x="12" y="9.5" width="8" height="5" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+              <rect x="14" y="10" width="6" height="4" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
             </svg>
           </button>
           <button class="icon-btn canvas-align-btn" @click="alignToCanvas('top')" :title="t('tabs.canvas_align_top')">
@@ -671,7 +680,7 @@
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
               <line x1="5" y1="4" x2="19" y2="4" stroke="#6366f1" stroke-width="2"></line>
-              <rect x="9.5" y="4" width="5" height="8" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+              <rect x="10" y="4" width="4" height="6" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
             </svg>
           </button>
           <button class="icon-btn canvas-align-btn" @click="alignToCanvas('bottom')" :title="t('tabs.canvas_align_bottom')">
@@ -679,7 +688,15 @@
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="2 2"></rect>
               <line x1="5" y1="20" x2="19" y2="20" stroke="#6366f1" stroke-width="2"></line>
-              <rect x="9.5" y="12" width="5" height="8" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+              <rect x="10" y="14" width="4" height="6" rx="1" fill="#6366f1" stroke="none" opacity="0.8"></rect>
+            </svg>
+          </button>
+          <button class="icon-btn canvas-align-btn" @click="alignToCanvas('fill')" :title="t('tabs.canvas_fill') || '铺满画布'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <rect x="3" y="3" width="18" height="18" rx="2" fill="#6366f1" opacity="0.4"></rect>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
             </svg>
           </button>
         </div>
@@ -764,6 +781,7 @@
       @update:model-value="(val: string) => updateNativeProp('fontFamily', val)" @close="closeColorPicker" />
     <TextEffectPickerPanel v-else-if="activeColorPicker?.startsWith('effect-')" :type="activeColorPicker.split('-')[1]" @select="applyTextEffect" />
     <BoxEffectPickerPanel v-else-if="activeColorPicker?.startsWith('boxeffect-')" :type="activeColorPicker.split('-')[1] as 'border' | 'shadow'" @select="applyBoxEffect" />
+    <GradientPickerPanel v-else-if="activeColorPicker === 'backgroundGradient'" @select="applyBackgroundGradient" />
     <ColorPickerPanel v-else-if="activeColorPicker" :model-value="currentColorValue"
       @update:model-value="updateCurrentColor" @close="closeColorPicker" />
   </n-popover>
@@ -780,6 +798,7 @@ import FontPickerPanel from './FontPickerPanel.vue';
 import ColorPickerPanel from './ColorPickerPanel.vue';
 import TextEffectPickerPanel from './TextEffectPickerPanel.vue';
 import BoxEffectPickerPanel from './BoxEffectPickerPanel.vue';
+import GradientPickerPanel from './GradientPickerPanel.vue';
 
 const ctx = useCanvasContext();
 const { t } = useI18n();
@@ -911,6 +930,7 @@ watch(
 );
 
 const applyBoxEffect = (styles: Record<string, string>) => { applyTextEffect(styles); };
+const applyBackgroundGradient = (styles: Record<string, string>) => { applyTextEffect(styles); };
 
 const applyTextEffect = (styles: Record<string, string>) => {
   if (!pluginApi || !pluginApi.elements || !pluginApi.elements.update) return;
@@ -1247,7 +1267,7 @@ const getElementSize = (el: any): { width: number; height: number } => {
 
 // Canvas Alignment - align selected elements relative to canvas edges/center
 const alignToCanvas = (
-  type: 'left' | 'right' | 'hcenter' | 'top' | 'bottom' | 'vcenter' | 'center'
+  type: 'left' | 'right' | 'hcenter' | 'top' | 'bottom' | 'vcenter' | 'center' | 'fill'
 ) => {
   if (selectedElements.value.length === 0) return;
   const canvasW = canvasState?.runtime?.width ?? 800;
@@ -1296,18 +1316,33 @@ const alignToCanvas = (
       deltaX = (canvasW - bboxW) / 2 - minX;
       deltaY = (canvasH - bboxH) / 2 - minY;
       break;
+    case 'fill':
+      deltaX = 0 - minX;
+      deltaY = 0 - minY;
+      break;
   }
 
   selectedElements.value.forEach(el => {
     const newX = Math.round((el.x + deltaX) * 100) / 100;
     const newY = Math.round((el.y + deltaY) * 100) / 100;
+    const updatePayload: any = { x: newX, y: newY };
+    
+    if (type === 'fill') {
+      updatePayload.width = canvasW;
+      updatePayload.height = canvasH;
+    }
+
     if (pluginApi && pluginApi.elements && pluginApi.elements.update) {
-      pluginApi.elements.update(el.id, { x: newX, y: newY });
+      pluginApi.elements.update(el.id, updatePayload);
     } else if (canvasState && canvasState.document && canvasState.document.slides) {
       const target = canvasState.document.slides[canvasState.runtime.currentSlideIndex || 0]?.elements?.find((e: any) => e.id === el.id);
       if (target) {
         target.x = newX;
         target.y = newY;
+        if (type === 'fill') {
+          target.width = canvasW;
+          target.height = canvasH;
+        }
       }
     }
   });
