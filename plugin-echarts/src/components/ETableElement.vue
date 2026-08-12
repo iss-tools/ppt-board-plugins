@@ -1,14 +1,24 @@
 <template>
-  <div class="vue-canvas-etable-element" :style="wrapperStyle">
+  <div class="vue-canvas-etable-element" :class="{ 'is-editing': isEditing }" :style="wrapperStyle">
     <table class="etable">
       <thead v-if="headers.length > 0">
         <tr>
-          <th v-for="(col, index) in headers" :key="index">{{ col }}</th>
+          <th v-for="(col, colIndex) in headers" :key="colIndex"
+              :contenteditable="isEditing"
+              @blur="onCellBlur($event, 0, colIndex)"
+              @keydown.enter.prevent="$event.target.blur()">
+            {{ col }}
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(row, rowIndex) in rows" :key="rowIndex">
-          <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+          <td v-for="(cell, colIndex) in row" :key="colIndex"
+              :contenteditable="isEditing"
+              @blur="onCellBlur($event, rowIndex + 1, colIndex)"
+              @keydown.enter.prevent="$event.target.blur()">
+            {{ cell }}
+          </td>
         </tr>
       </tbody>
     </table>
@@ -63,6 +73,21 @@ const rows = computed(() => {
   }
   return [];
 });
+
+const onCellBlur = (e: Event, rIdx: number, cIdx: number) => {
+  const target = e.target as HTMLElement;
+  const newValue = target.innerText.trim();
+  
+  if (newValue !== datasetSource.value[rIdx][cIdx]) {
+    // Clone array
+    const newDataset = datasetSource.value.map(row => [...row]);
+    newDataset[rIdx][cIdx] = newValue;
+    
+    emit('update', {
+      dataset: { source: newDataset }
+    }, false);
+  }
+};
 </script>
 
 <style scoped>
@@ -73,6 +98,12 @@ const rows = computed(() => {
   padding: 8px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s, outline 0.2s;
+}
+
+.vue-canvas-etable-element.is-editing {
+  outline: 2px solid #00ccff;
+  box-shadow: 0 4px 12px rgba(0, 204, 255, 0.3);
 }
 
 .etable {

@@ -49,13 +49,52 @@ const renderChart = () => {
   const userOptions = props.element.props?.echartsOption || {};
   const dataset = props.element.props?.dataset || null;
 
+  let seriesType = 'bar';
+  if (userOptions.series && Array.isArray(userOptions.series) && userOptions.series.length > 0) {
+    seriesType = userOptions.series[0].type || 'bar';
+  }
+
+  // Read custom layout property
+  const layoutBy = userOptions.seriesLayoutBy === 'row' ? 'row' : 'column';
+
+  // Auto-detect number of series needed based on dataset columns/rows
+  let numSeries = 1;
+  if (dataset && Array.isArray(dataset.source) && dataset.source.length > 0) {
+    if (layoutBy === 'row') {
+      const numRows = dataset.source.length;
+      numSeries = Math.max(1, numRows - 1);
+    } else {
+      const numColumns = dataset.source[0].length;
+      numSeries = Math.max(1, numColumns - 1);
+    }
+  }
+
+  // Pie charts usually only need 1 series unless customized (multiple rings)
+  if (seriesType === 'pie') {
+    numSeries = 1;
+  }
+
+  const generatedSeries = Array.from({ length: numSeries }).map(() => ({
+    type: seriesType,
+    seriesLayoutBy: layoutBy
+  }));
+
   const finalOptions: echarts.EChartsCoreOption = {
     ...defaultChartOptions,
     ...userOptions,
+    series: generatedSeries
   };
 
   if (dataset) {
     finalOptions.dataset = dataset;
+  }
+
+  // Merge the user option's series overrides (if any) onto the generated series
+  if (userOptions.series && Array.isArray(userOptions.series)) {
+    finalOptions.series = generatedSeries.map((s, i) => ({
+      ...s,
+      ...(userOptions.series[i] || userOptions.series[0] || {})
+    }));
   }
 
   chartInstance.setOption(finalOptions, true);
