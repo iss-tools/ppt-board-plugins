@@ -21,6 +21,10 @@ export default {
     themeAuto: 'Auto',
     github: 'GitHub Source',
     searchPlaceholder: 'Find on canvas...',
+    about: 'About Us',
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
+    confirm: 'OK',
   },
   colorPicker: {
     title: 'Custom Colors',
@@ -155,6 +159,8 @@ export default {
     f3Desc: 'Provides a blazing fast local database (useEasyStore) for plugins powered by Dexie.',
     f4Title: 'Infinite Canvas & Slides: ',
     f4Desc: 'Supports free-form auto ratio or fixed presentation ratios with rich media animations.',
-    github: 'GitHub'
+    github: 'GitHub',
+    privacyContent: 'Privacy Policy\n\nThank you for using PPT Board (Vue Canvas)! Your privacy is of the utmost importance to us. This Privacy Policy helps you understand how we collect, use, and protect your information.\n\n1. Information Collection and Use\nWe are a completely local, browser-based tool. By default, we do not proactively collect any personally identifiable information. All your canvas content, images, and component data are saved locally in your browser\'s IndexedDB. We do not provide centralized cloud storage, nor do we upload your files to our servers.\n\n2. Third-Party API Services\nTo provide AI-powered features (such as Image to Component, AI text polishing, etc.) and other enhancements, we allow you to configure and use third-party API services (e.g., OpenAI, Anthropic). When you use these services, your inputs are sent directly from your browser to the respective third-party platforms. Their own privacy policies will govern the use of your data. We strongly recommend reading the privacy policies of any API providers you use.\n\n3. Cookies and Local Storage\nWe use your browser\'s LocalStorage and IndexedDB to save your user settings, workspace states, and document history. This data remains on your local device. You can clear this data at any time via your browser settings.\n\n4. Updates to the Privacy Policy\nWe may revise this Privacy Policy occasionally. Should any significant changes occur, we will notify you on the project homepage or within the product.\n\nIf you have any questions about this Privacy Policy, please contact us by submitting an Issue on our GitHub repository (https://github.com/iss-tools/ppt-board-web).',
+    termsContent: 'Terms of Service\n\nWelcome to PPT Board (Vue Canvas)! Please read these Terms of Service carefully before you start using our products or services.\n\n1. Description of Service\nPPT Board (Vue Canvas) is a free, open-source (under the AGPL-3.0 License), browser-based presentation and canvas editing tool. We strive to provide a lightweight, high-performance experience for editing and exporting slides.\n\n2. User Rights and Obligations\nYou have the right to use this tool for legal creative and editing work free of charge.\nYou agree not to use the service for activities that violate applicable laws or infringe on the intellectual property or legal rights of others.\nWhen using AI features or other third-party integrations, you must comply with the terms of use of those respective providers.\n\n3. Data Security and Limitation of Liability\nThis tool relies entirely on local browser storage. We strongly recommend regularly using the "Export All Data" feature to back up your important work. We are not liable for any local data loss resulting from cleared browser caches, device damage, or any force majeure.\nAs open-source software, the service is provided "AS IS," without warranty of any kind, express or implied, including but not limited to the warranties of merchantability or fitness for a particular purpose.\n\n4. Intellectual Property\nThe copyrights of the core code and design related to this product belong to the original authors (iss-tools). The intellectual property of the content you create while using this tool entirely belongs to you.\n\n5. Modifications to Terms\nWe reserve the right to modify these Terms at any time. The revised terms will be published in the project repository. Your continued use of the service constitutes your acceptance and agreement to the modified terms.'
   }
 };

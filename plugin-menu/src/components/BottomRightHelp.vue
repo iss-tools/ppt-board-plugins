@@ -18,11 +18,7 @@
         <path d="M2 3h20"></path><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"></path><path d="m7 21 5-5 5 5"></path>
       </svg>
     </button>
-    <button class="icon-btn" @click="openAbout" :title="t('controls.aboutUs')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
-      </svg>
-    </button>
+
     <button class="icon-btn help-btn" @click="openHelp" :title="t('controls.help')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round">
@@ -77,31 +73,7 @@ const previewPPT = () => {
   }
 };
 
-const openAbout = () => {
-  dialog.info({
-    title: t('controls.aboutUs'),
-    style: 'width: 500px;',
-    content: () => h('div', { style: 'display: flex; flex-direction: column; gap: 12px; margin-top: 12px;' }, [
-      h('div', { style: 'display: flex; align-items: center; gap: 12px;' }, [
-        h('div', { style: 'background: var(--n-primary-color, #6366f1); color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;' }, 'P'),
-        h('div', null, [
-          h('h3', { style: 'margin: 0; font-size: 18px; color: var(--n-text-color);' }, t('about.title')),
-          h('p', { style: 'margin: 4px 0 0; font-size: 13px; color: var(--n-text-color-3);' }, t('about.subtitle'))
-        ])
-      ]),
-      h('p', { style: 'margin: 0; font-size: 14px; line-height: 1.6; color: var(--n-text-color-2);' }, t('about.desc')),
-      h('h4', { style: 'margin: 8px 0 0; font-size: 15px; color: var(--n-text-color);' }, t('about.featuresTitle')),
-      h('ul', { style: 'margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--n-text-color-2); display: flex; flex-direction: column; gap: 4px;' }, [
-        h('li', null, [h('strong', null, t('about.f1Title')), h('span', null, t('about.f1Desc'))]),
-        h('li', null, [h('strong', null, t('about.f2Title')), h('span', null, t('about.f2Desc'))]),
-        h('li', null, [h('strong', null, t('about.f3Title')), h('span', null, t('about.f3Desc'))]),
-        h('li', null, [h('strong', null, t('about.f4Title')), h('span', null, t('about.f4Desc'))])
-      ])
-    ]),
-    positiveText: t('about.github'),
-    onPositiveClick: () => window.open('https://github.com/iss-tools/ppt-board', '_blank')
-  });
-};
+
 
 const isFullscreen = ref(!!document.fullscreenElement);
 
