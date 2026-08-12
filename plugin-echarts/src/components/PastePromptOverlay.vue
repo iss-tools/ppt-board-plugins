@@ -3,20 +3,20 @@
     <div class="prompt-card">
       <div class="header">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        <span>Table Data Detected</span>
+        <span>{{ t('echarts.prompt.detectedData') }}</span>
       </div>
       <div class="content">
-        <p>You pasted {{ pluginState.pastePrompt.data.length }} rows of tabular data. How would you like to insert it?</p>
+        <p>{{ t('echarts.prompt.pasteRows', { count: pluginState.pastePrompt.data.length }) }}</p>
         <div class="actions">
           <button class="btn-chart" @click="handleChoice('chart')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"></rect><rect x="10" y="8" width="4" height="13"></rect><rect x="2" y="13" width="4" height="8"></rect></svg>
-            Insert as Data Chart
+            {{ t('echarts.prompt.insertChart') }}
           </button>
           <button class="btn-table" @click="handleChoice('table')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3zM21 9H3M21 15H3M9 3v18M15 3v18"/></svg>
-            Insert as Data Table
+            {{ t('echarts.prompt.insertTable') }}
           </button>
-          <button class="btn-cancel" @click="handleChoice('cancel')">Cancel</button>
+          <button class="btn-cancel" @click="handleChoice('cancel')">{{ t('echarts.prompt.cancel') }}</button>
         </div>
       </div>
     </div>
@@ -27,8 +27,10 @@
 import { computed } from 'vue';
 import { pluginState } from '../store';
 import { useCanvasContext } from '@iss-ai/ppt-board';
+import { useI18n } from '../composables/useI18n';
 
 const { state } = useCanvasContext();
+const { t } = useI18n();
 
 const overlayStyle = computed(() => {
   // Try to position near the mouse, but bound to window

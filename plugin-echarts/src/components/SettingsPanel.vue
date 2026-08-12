@@ -4,49 +4,51 @@
     <div class="panel-container" @mousedown.stop @touchstart.stop>
       <n-tabs type="segment" animated>
         <!-- Chart Settings Tab -->
-        <n-tab-pane v-if="isChart" name="chart" tab="图表类型">
+        <n-tab-pane v-if="isChart" name="chart" :tab="t('echarts.settings.chartTypeTab')">
           <div class="settings-group">
             <n-space vertical>
-              <n-text depth="3">基本配置</n-text>
+              <n-text depth="3">{{ t('echarts.settings.basicSettings') }}</n-text>
               <div class="prop-item">
-                <span class="prop-label">图表类型</span>
+                <span class="prop-label">{{ t('echarts.settings.chartType') }}</span>
                 <n-select v-model:value="globalChartType" :options="chartTypeOptions" size="small" style="width: 140px;" />
               </div>
-              <n-text depth="3" style="margin-top: 12px;">数据映射方式 (X轴来源)</n-text>
+              <n-text depth="3" style="margin-top: 12px;">{{ t('echarts.settings.dataMapping') }}</n-text>
               <n-radio-group v-model:value="seriesLayoutBy" name="layoutByGroup">
                 <n-space vertical>
                   <n-radio value="column">
-                    按列映射 <n-text depth="3" style="font-size: 12px">(第一列为X轴)</n-text>
+                    {{ t('echarts.settings.mapByColumn') }} <n-text depth="3" style="font-size: 12px">{{ t('echarts.settings.colAsX') }}</n-text>
                   </n-radio>
                   <n-radio value="row">
-                    按行映射 <n-text depth="3" style="font-size: 12px">(第一行为X轴)</n-text>
+                    {{ t('echarts.settings.mapByRow') }} <n-text depth="3" style="font-size: 12px">{{ t('echarts.settings.rowAsX') }}</n-text>
                   </n-radio>
                 </n-space>
               </n-radio-group>
               
-              <n-text depth="3" style="margin-top: 12px;">标签显示设置</n-text>
+              <n-text depth="3" style="margin-top: 12px;">{{ t('echarts.settings.labelSettings') }}</n-text>
               <n-space vertical :size="8">
-                <n-checkbox v-model:checked="showLabelValue">显示数值</n-checkbox>
-                <n-checkbox v-model:checked="showLabelPercent" :disabled="!isPercentSupported">显示占比 (仅饼图/漏斗图)</n-checkbox>
+                <n-checkbox v-model:checked="showLabelValue">{{ t('echarts.settings.showValue') }}</n-checkbox>
+                <n-checkbox v-model:checked="showLabelPercent" :disabled="!isPercentSupported">{{ t('echarts.settings.showPercent') }}</n-checkbox>
               </n-space>
             </n-space>
           </div>
         </n-tab-pane>
 
         <!-- Data Editor Tab -->
-        <n-tab-pane name="data" tab="数据编辑">
+        <n-tab-pane name="data" :tab="t('echarts.settings.dataEditTab')">
           <div class="settings-group">
             <n-space vertical>
-              <n-text depth="3">修改原始数据 (TSV格式)</n-text>
+              <n-text depth="3" style="font-size: 12px; margin-bottom: 8px;">
+                {{ t('echarts.settings.dataPasteTip') }}
+              </n-text>
               <n-input
                 v-model:value="rawData"
                 type="textarea"
-                rows="10"
-                placeholder="在此处编辑制表符分隔的数据..."
+                :rows="10"
+                placeholder=""
                 style="font-family: monospace; font-size: 12px; white-space: pre;"
                 @blur="onDataUpdate"
               />
-              <n-button type="primary" size="small" block @click="onDataUpdate">应用数据更新</n-button>
+              <n-button type="primary" size="small" block @click="onDataUpdate">{{ t('echarts.settings.applyData') }}</n-button>
             </n-space>
           </div>
         </n-tab-pane>
@@ -57,10 +59,12 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { NConfigProvider, NTabs, NTabPane, NSpace, NText, NSelect, NInput, NButton, NRadioGroup, NRadio, NCheckbox, darkTheme } from 'naive-ui';
+import { NConfigProvider, NTabs, NTabPane, NSpace, NText, NSelect, NInput, NButton, NRadioGroup, NRadio, NCheckbox, darkTheme, NCollapse, NCollapseItem } from 'naive-ui';
 import { useCanvasContext } from '@iss-ai/ppt-board';
+import { useI18n } from '../composables/useI18n';
 
 const ctx = useCanvasContext();
+const { t } = useI18n();
 const state = ctx.state;
 
 const isDarkTheme = computed(() => state.editor?.theme === 'dark');
