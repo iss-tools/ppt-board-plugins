@@ -92,7 +92,7 @@ const chartTypeOptions = [
 const globalChartType = computed({
   get: () => {
     if (!selectedElement.value || selectedElement.value.type !== 'echarts') return 'bar';
-    const series = selectedElement.value.props?.echartsOption?.series;
+    const series = (selectedElement.value.props?.echartsOption as any)?.series;
     if (Array.isArray(series) && series.length > 0) {
       return series[0].type || 'bar';
     }
@@ -100,7 +100,7 @@ const globalChartType = computed({
   },
   set: (newType: string) => {
     if (!selectedElement.value) return;
-    const currentOption = selectedElement.value.props?.echartsOption || { series: [] };
+    const currentOption: any = selectedElement.value.props?.echartsOption || { series: [] };
     
     // We update the first series (or all existing series) to this type
     const newSeries = Array.isArray(currentOption.series) && currentOption.series.length > 0
@@ -122,7 +122,7 @@ const globalChartType = computed({
 const seriesLayoutBy = computed({
   get: () => {
     if (!selectedElement.value || selectedElement.value.type !== 'echarts') return 'column';
-    return selectedElement.value.props?.echartsOption?.seriesLayoutBy || 'column';
+    return (selectedElement.value.props?.echartsOption as any)?.seriesLayoutBy || 'column';
   },
   set: (newLayout: string) => {
     if (!selectedElement.value) return;
@@ -174,8 +174,8 @@ const rawData = ref('');
 
 // Parse dataset.source into TSV text when selection changes
 watch(selectedElement, (newEl) => {
-  if (newEl && newEl.props?.dataset?.source) {
-    const source = newEl.props.dataset.source as any[][];
+  if (newEl && (newEl.props?.dataset as any)?.source) {
+    const source = (newEl.props!.dataset as any).source as any[][];
     rawData.value = source.map(row => row.join('\t')).join('\n');
   } else {
     rawData.value = '';

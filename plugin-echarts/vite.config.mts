@@ -23,11 +23,12 @@ export default defineConfig({
       formats: ['es', 'cjs', 'umd', 'iife'],
     },
     rollupOptions: {
-      external: ['@iss-ai/ppt-board','vue'],
+      external: ['@iss-ai/ppt-board','vue', 'naive-ui'],
       output: {
         globals: {
           vue: 'Vue',
           '@iss-ai/ppt-board': 'PptBoard',
+          'naive-ui': 'naive'
         }
       }
     }

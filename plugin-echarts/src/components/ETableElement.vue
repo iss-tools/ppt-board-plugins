@@ -6,7 +6,7 @@
           <th v-for="(col, colIndex) in headers" :key="colIndex"
               :contenteditable="isEditing"
               @blur="onCellBlur($event, 0, colIndex)"
-              @keydown.enter.prevent="$event.target.blur()">
+              @keydown.enter.prevent="($event.target as HTMLElement)?.blur()">
             {{ col }}
           </th>
         </tr>
@@ -16,7 +16,7 @@
           <td v-for="(cell, colIndex) in row" :key="colIndex"
               :contenteditable="isEditing"
               @blur="onCellBlur($event, rowIndex + 1, colIndex)"
-              @keydown.enter.prevent="$event.target.blur()">
+              @keydown.enter.prevent="($event.target as HTMLElement)?.blur()">
             {{ cell }}
           </td>
         </tr>
@@ -49,7 +49,7 @@ const wrapperStyle = computed(() => {
 });
 
 const datasetSource = computed<any[][]>(() => {
-  const ds = props.element.props?.dataset;
+  const ds: any = props.element.props?.dataset;
   if (ds && Array.isArray(ds.source)) {
     return ds.source;
   }

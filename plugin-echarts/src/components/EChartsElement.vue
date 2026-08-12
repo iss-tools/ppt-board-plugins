@@ -46,8 +46,8 @@ const renderChart = () => {
     chartInstance = echarts.init(chartRef.value);
   }
 
-  const userOptions = props.element.props?.echartsOption || {};
-  const dataset = props.element.props?.dataset || null;
+  const userOptions: any = props.element.props?.echartsOption || {};
+  const dataset: any = props.element.props?.dataset || null;
 
   let seriesType = 'bar';
   if (userOptions.series && Array.isArray(userOptions.series) && userOptions.series.length > 0) {
@@ -176,8 +176,8 @@ const renderChart = () => {
          }
       }
 
-      finalOptions.xAxis.data = xData;
-      finalOptions.yAxis.data = yData;
+      (finalOptions.xAxis as any).data = xData;
+      (finalOptions.yAxis as any).data = yData;
       
       finalOptions.series = [{
          type: 'heatmap',
@@ -236,7 +236,7 @@ const renderChart = () => {
         }
       }
       
-      finalOptions.xAxis.data = xData;
+      (finalOptions.xAxis as any).data = xData;
       finalOptions.series = [{
          type: 'candlestick',
          data: kData
