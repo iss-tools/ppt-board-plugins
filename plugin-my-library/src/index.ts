@@ -6,8 +6,57 @@ import { parseExcalidrawElements } from './utils/excalidraw-parser';
 export const MyLibraryPlugin: CanvasPlugin = {
   name: 'vue-canvas-plugin-my-library',
 
-  install(ctx: CanvasPluginContext) {
+  install(ctx: CanvasPluginContext, options?: { libraryUrl?: string }) {
     console.log('[MyLibraryPlugin] 🚀 Plugin Installed Successfully!');
+
+    if (options?.libraryUrl) {
+      pluginState.libraryUrl = options.libraryUrl;
+    }
+
+    // Intercept URL for dynamic library import (e.g., ?addLibrary=... or #addLibrary=...)
+    const checkUrlForLibrary = () => {
+      let addLibrary: string | null = null;
+      let token: string | null = null;
+      let isHash = false;
+      
+      // Check query parameters first
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('addLibrary')) {
+        addLibrary = searchParams.get('addLibrary');
+        token = searchParams.get('token');
+      } 
+      // Fallback to hash parameters (Excalidraw style)
+      else if (window.location.hash.includes('addLibrary=')) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        addLibrary = hashParams.get('addLibrary');
+        token = hashParams.get('token');
+        isHash = true;
+      }
+      
+      if (addLibrary) {
+        let url = decodeURIComponent(addLibrary);
+        if (token) {
+          url += (url.includes('?') ? '&' : '?') + `token=${token}`;
+        }
+        
+        pluginState.pendingImportUrl = url;
+        pluginState.isDrawerVisible = true;
+        
+        // Clean up the URL so it doesn't trigger again on reload
+        const newUrl = new URL(window.location.href);
+        if (isHash) {
+          newUrl.hash = '';
+        } else {
+          newUrl.searchParams.delete('addLibrary');
+          newUrl.searchParams.delete('token');
+        }
+        window.history.replaceState(null, '', newUrl.toString());
+      }
+    };
+
+    window.addEventListener('hashchange', checkUrlForLibrary);
+    // Check initially in case the app was loaded with the hash or query string
+    setTimeout(checkUrlForLibrary, 500); // Slight delay to let UI mount
 
     // Initialize state & sync with persistent data
     initStore(ctx);
@@ -90,5 +139,6 @@ export const MyLibraryPlugin: CanvasPlugin = {
     if ((this as any)._cleanup) {
       (this as any)._cleanup();
     }
+    // Note: If we had a reference to checkHashForLibrary, we could removeEventListener here.
   },
 };

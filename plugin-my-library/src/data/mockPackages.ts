@@ -1,19 +1,34 @@
-/// <reference types="vite/client" />
 import type { MockPackage } from '../utils/excalidraw-parser';
 
-// Use Vite's import.meta.glob to dynamically import all JSON files in the library directory
-const libraryModules = import.meta.glob('./library/*.json');
-
-export const loadMockPackages = async (): Promise<MockPackage[]> => {
+export const loadMockPackages = async (baseUrl: string = '/data/library'): Promise<MockPackage[]> => {
   const packages: MockPackage[] = [];
   
-  for (const path in libraryModules) {
+  let libraryFiles: string[] = [];
+  try {
+    const indexRes = await fetch(`${baseUrl}/index.json`);
+    if (indexRes.ok) {
+      libraryFiles = await indexRes.json();
+    } else {
+      console.warn(`[MyLibraryPlugin] No index.json found at ${baseUrl}. Skipping dynamic loading.`);
+      return packages;
+    }
+  } catch (err) {
+    console.error(`[MyLibraryPlugin] Failed to fetch index.json from ${baseUrl}:`, err);
+    return packages;
+  }
+
+  for (const file of libraryFiles) {
+    const url = `${baseUrl}/${file}.json`;
     try {
-      const module = await libraryModules[path]();
-      const pkg = (module as any).default || module;
-      packages.push(pkg as MockPackage);
+      const res = await fetch(url);
+      if (res.ok) {
+        const pkg = await res.json();
+        packages.push(pkg as MockPackage);
+      } else {
+        console.error(`[MyLibraryPlugin] Failed to fetch library file: ${url} - Status: ${res.status}`);
+      }
     } catch (err) {
-      console.error(`Failed to load mock package from ${path}:`, err);
+      console.error(`[MyLibraryPlugin] Error loading library file ${url}:`, err);
     }
   }
   

@@ -87,7 +87,7 @@ onMounted(async () => {
   // Simulate network request or dynamic loading
   try {
     const { loadMockPackages } = await import('../data/mockPackages');
-    const packages = await loadMockPackages();
+    const packages = await loadMockPackages(pluginState.libraryUrl);
     
     mockPackages.value = packages;
     loading.value = false;
@@ -112,6 +112,19 @@ const closeExcalidrawModal = () => {
 watch(excalidrawUrl, () => {
   if (previewPackage.value) {
     previewPackage.value = null;
+  }
+});
+
+// Watch for external URL imports (e.g. from #addLibrary)
+watch(() => pluginState.pendingImportUrl, (newUrl) => {
+  if (newUrl) {
+    excalidrawUrl.value = newUrl;
+    showExcalidrawModal.value = true;
+    pluginState.pendingImportUrl = ''; // Clear it so it can trigger again if needed
+    // Small delay to allow modal to open before fetching
+    setTimeout(() => {
+      handlePreviewExcalidraw();
+    }, 300);
   }
 });
 
@@ -142,9 +155,18 @@ const handlePreviewExcalidraw = async () => {
 
     // Attempt to extract a good name from the URL or fall back
     const urlParts = excalidrawUrl.value.split('/');
-    const fallbackName = urlParts[urlParts.length - 1].replace('.excalidrawlib', '');
+    const fallbackName = urlParts[urlParts.length - 1].replace('.excalidrawlib', '').replace('.json', '');
 
-    const parsedPkg = parseExcalidrawLibrary(json, fallbackName || t('excalidrawLibrary'));
+    let parsedPkg: MockPackage | null = null;
+    
+    // Check if it's already a native MockPackage format
+    if (json.components && Array.isArray(json.components)) {
+      parsedPkg = json as MockPackage;
+      // Ensure name is set
+      if (!parsedPkg.name) parsedPkg.name = fallbackName || t('excalidrawLibrary');
+    } else {
+      parsedPkg = parseExcalidrawLibrary(json, fallbackName || t('excalidrawLibrary'));
+    }
 
     if (!parsedPkg) {
       throw new Error(t('invalidExcalidrawFormat'));

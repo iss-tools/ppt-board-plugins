@@ -13,6 +13,8 @@ export interface LibraryComponent {
 export const pluginState = reactive({
   isPanelVisible: false,
   isDrawerVisible: false,
+  libraryUrl: '/data/library',
+  pendingImportUrl: '',
 });
 
 export const personalComponents = ref<LibraryComponent[]>([]);
