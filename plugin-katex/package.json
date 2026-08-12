@@ -1,24 +1,24 @@
 {
-  "name": "plugin-katex",
+  "name": "@iss-ai/plugin-katex",
   "description": "A ppt-board plugin",
-  "version": "0.0.1",
-  "author": "",
+  "version": "0.0.0",
+  "author": "iss-tools",
   "keywords": [
-    "utils",
+    "katex",
+    "math",
+    "plugin",
+    "ppt-board",
     "typescript",
-    "rollup",
-    "jest",
-    "esm",
-    "umd",
-    "cjs"
+    "vue"
   ],
-  "homepage": "",
+  "homepage": "https://github.com/iss-tools/ppt-board-plugins#readme",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/iss-tools/ppt-board-plugins.git",
+    "directory": "plugin-katex"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/iss-tools/ppt-board-plugins/issues"
   },
   "private": false,
   "publishConfig": {
@@ -110,10 +110,10 @@
   },
   "peerDependencies": {
     "@iss-ai/ppt-board": "workspace:*",
-    "vue": "^3.0.0"
+    "vue": "^3.0.0",
+    "naive-ui": "^2.44.1"
   },
   "dependencies": {
-    "katex": "^0.18.4",
-    "naive-ui": "^2.44.1"
+    "katex": "^0.18.4"
   }
 }

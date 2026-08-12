@@ -1,73 +1,35 @@
-# plugin-echarts
+# @iss-ai/plugin-echarts
 
-[English](./README.md) | [简体中文](./README.zh-CN.md)
+`vue-canvas` (ppt-board) 的 ECharts 官方插件。提供在画布中直接插入、渲染与编辑交互式 ECharts 图表和数据表格的强大能力。
 
-基于 TypeScript 和 Rollup 开发 NPM 包的开箱即用模板。
+## 核心特性
 
-## 特性
+- **交互式图表:** 无缝嵌入 ECharts 丰富的图表库（支持柱状图、折线图、饼图、散点图、漏斗图、雷达图、热力图、K线图）。
+- **表格数据编辑:** 附带原生的数据表格元素 (`ETableElement`) 以及用于修改数据的浮动属性面板。
+- **智能粘贴解析:** 自动监听并解析从电子表格（Excel、Google Sheets 等）复制粘贴的 TSV 格式数据，并智能提示用户一键插入为图表或表格。
+- **动态暗黑主题:** 深度集成宿主编辑器的暗黑模式。当画布切换为暗色主题时，图表的背景、文字颜色以及表格的单元格配色会自动过渡到优雅的暗黑风格。
+- **全量国际化 (i18n):** 提供中英文无缝切换的支持，所有设置面板、弹窗、操作提示均会跟随宿主编辑器的语言状态实时更新。
 
-- **TypeScript** - 强类型支持，基于 `tsc` 和 `@rollup/plugin-typescript`。
-- **Rollup** - 高效的打包工具。
-- **多模块格式** - 支持导出 ESM、CJS 和 UMD 格式的代码。
-- **Jest** - 预配置的测试框架，包含 jsdom 支持。
-- **Babel** - 集成 Babel 以支持降级编译及更好的浏览器兼容性。
-- **PostCSS & Less** - 支持在包中直接编写样式。
-- **ESLint & Prettier** - 集成 ESLint、Husky 与 lint-staged 以实现提交前的代码语法检查与格式化。
-- **Commitlint** - 强制校验 Commit 遵循 Conventional Commits 规范。
-- **自动化发版 (release-it)** - 一键化自动完成版本号升级、打 Git Tag、生成 Changelog 以及 npm 发布。
-
-## 开始使用
-
-首先安装依赖：
+## 安装
 
 ```bash
-pnpm install
+pnpm install @iss-ai/plugin-echarts echarts naive-ui
 ```
 
-## 可用脚本
+## 使用方法
 
-在项目目录中，你可以运行以下命令：
+在宿主编辑器的启动入口注册该插件：
 
-- `pnpm dev`: 启动本地 Vite 游乐场 (Playground)，用于组件的实时开发与 UI 预览。
-- `pnpm clean`: 清理 `lib` 输出目录。
-- `pnpm build`: 使用 Rollup 编译并打包用于生产环境的代码。生成的产物会存放在 `lib` 目录。
-- `pnpm test`: 运行 Jest 单元测试。
-- `pnpm coveralls`: 运行测试并收集测试覆盖率数据。
-- `pnpm tsc`: 运行 TypeScript 类型检查（不进行打包）。
-- `pnpm lint`: 运行 ESLint 检查代码规范。
-- `pnpm release`: 启动 `release-it` 交互式命令行，完成版本升级、打 Tag 和发包流程。
+```vue
+<template>
+  <VueCanvasEditor :language="editorLanguage" :plugins="[EChartsPlugin]" />
+</template>
 
-## 开发指南
-
-### 提交规范 (Commit Convention)
-
-本项目使用 `commitlint` 强制推行 [Conventional Commits (约定式提交)](https://www.conventionalcommits.org/zh-hans/) 规范。
-在提交代码时，你的 Commit Message 必须以特定的前缀开头，并且冒号后面需要有一个空格。常用的前缀包括：
-
-- `feat: 新增某某功能` (新功能)
-- `fix: 修复某某bug` (Bug 修复)
-- `chore: 更新相关配置` (构建过程或辅助工具的变动)
-- `docs: 更新文档说明` (文档修改)
-
-如果不遵循此格式，Git Hook 会拦截并拒绝你的提交。
-
-## 使用指南
-
-1. 在 `src` 文件夹中编写你的组件代码。
-2. 运行 `pnpm dev` 启动 `playground/` 目录下的 Vite 服务，在浏览器中实时可视化开发你的 UI 组件。
-3. 在 `__tests__/` 目录下编写组件的单元测试，并使用 `pnpm test` 运行它们。
-4. 运行 `pnpm build` 进行编译打包。
-5. 产出的文件将位于 `lib` 目录中，准备发布。
-
-## 包发布指南
-
-本项目已默认配置将包发布到官方 NPM 仓库。如果你的本地环境使用了淘宝镜像或 CNPM 等只读镜像源，在发版前请务必显式登录官方 NPM 账号：
-
-```bash
-npm login --registry=https://registry.npmjs.org/
-pnpm release
+<script setup>
+import { VueCanvasEditor } from '@iss-ai/ppt-board';
+import EChartsPlugin from '@iss-ai/plugin-echarts';
+</script>
 ```
 
 ## 开源协议
-
-[MIT](./LICENSE)
+MIT

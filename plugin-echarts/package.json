@@ -1,24 +1,24 @@
 {
-  "name": "plugin-echarts",
+  "name": "@iss-ai/plugin-echarts",
   "description": "A ppt-board plugin",
-  "version": "0.0.1",
-  "author": "",
+  "version": "0.0.0",
+  "author": "iss-tools",
   "keywords": [
-    "utils",
+    "echarts",
+    "chart",
+    "plugin",
+    "ppt-board",
     "typescript",
-    "rollup",
-    "jest",
-    "esm",
-    "umd",
-    "cjs"
+    "vue"
   ],
-  "homepage": "",
+  "homepage": "https://github.com/iss-tools/ppt-board-plugins#readme",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/iss-tools/ppt-board-plugins.git",
+    "directory": "plugin-echarts"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/iss-tools/ppt-board-plugins/issues"
   },
   "private": false,
   "publishConfig": {
@@ -110,7 +110,8 @@
   },
   "peerDependencies": {
     "@iss-ai/ppt-board": "workspace:*",
-    "vue": "^3.0.0"
+    "vue": "^3.0.0",
+    "naive-ui": "^2.44.1"
   },
   "dependencies": {
     "echarts": "^6.1.0"

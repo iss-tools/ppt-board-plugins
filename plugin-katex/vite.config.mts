@@ -18,16 +18,17 @@ export default defineConfig({
     sourcemap: false,
     lib: {
       entry: './src/index.ts',
-      name: '$utils',
+      name: 'PluginKatex',
       fileName: (format) => `index.${format === 'es' ? 'esm' : (format === 'cjs' ? 'cjs' : format === 'iife' ? 'min' : format)}.js`,
       formats: ['es', 'cjs', 'umd', 'iife'],
     },
     rollupOptions: {
-      external: ['@iss-ai/ppt-board','vue'],
+      external: ['@iss-ai/ppt-board','vue', 'naive-ui'],
       output: {
         globals: {
           vue: 'Vue',
           '@iss-ai/ppt-board': 'PptBoard',
+          'naive-ui': 'naive'
         }
       }
     }

@@ -1,34 +1,33 @@
-# Vue Canvas Example Plugin
+# @iss-ai/plugin-echarts
 
-This is a demonstration of the `@iss-ai/vue-canvas` Plugin API. It illustrates how to leverage the highly-extensible `CanvasPluginContext` to interact with the core engine without modifying the internal source code.
+A plugin for `vue-canvas` (ppt-board) that provides robust support for inserting, rendering, and editing ECharts components and Data Tables directly on the canvas.
 
-## Files
+## Features
 
-- `index.ts`: The plugin entrypoint containing the lifecycle hooks (`install`, `destroy`).
-- `ExampleOverlay.vue`: A Vue component that gets dynamically injected into the canvas view via `ctx.ui.registerOverlay`.
+- **Interactive ECharts:** Seamlessly embed rich ECharts (Bar, Line, Pie, Scatter, Funnel, Radar, Heatmap, Candlestick).
+- **Tabular Data Editing:** Includes a built-in Data Table element (`ETableElement`) and floating properties panel.
+- **Smart Paste:** Automatically detects TSV data pasted from spreadsheets (Excel, Google Sheets) and prompts the user to insert it as a Chart or Table.
+- **Dynamic Theming:** Deep integration with host themes. Automatically transitions chart elements and table backgrounds to dark mode when the canvas switches to dark mode.
+- **Internationalization (i18n):** Full English (en) and Chinese (zh) support for all UI text, settings panels, and prompts.
 
-## What it Demonstrates
+## Installation
 
-1. **Event Hijacking**: Uses `ctx.hooks.on` to listen to `change`, `select`, and `language-change` events. Check the browser console to see the logs when you interact with the canvas!
-2. **UI Injection**: Demonstrates how to inject a custom Vue component directly into the Canvas rendering loop.
-3. **Core API Manipulation**: Shows how to use `ctx.api.addElement()` to mutate the canvas state safely (bypassing Vue reactivity issues).
-4. **Toolbar & Context Menu Hooks**: Registers mock configurations for toolbar items and context menus (these will render once the editor toolbar/context-menu UI iterates over `pluginManager.toolbarItems` and `pluginManager.contextMenuItems`).
+```bash
+pnpm install @iss-ai/plugin-echarts echarts naive-ui
+```
 
-## How to test it in Playground
-
-To test this plugin, open `/playground/App.vue` or your main editor entry point and register it:
+## Usage
 
 ```vue
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { CanvasEditor } from '../src';
-import { ExamplePlugin } from '../plugins/plugin-echarts';
+<template>
+  <VueCanvasEditor :language="editorLanguage" :plugins="[EChartsPlugin]" />
+</template>
 
-const editorRef = ref();
-
-onMounted(() => {
-  // Register the plugin!
-  editorRef.value.usePlugin(ExamplePlugin);
-});
+<script setup>
+import { VueCanvasEditor } from '@iss-ai/ppt-board';
+import EChartsPlugin from '@iss-ai/plugin-echarts';
 </script>
 ```
+
+## License
+MIT
