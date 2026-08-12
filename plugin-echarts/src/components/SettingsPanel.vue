@@ -1,6 +1,6 @@
 <template>
   <n-config-provider v-if="isVisible" class="plugin-echarts-settings-overlay" :theme="isDarkTheme ? darkTheme : null"
-    :class="{ dark: isDarkTheme }">
+    :class="{ dark: isDarkTheme }" :style="panelStyle">
     <div class="panel-container" @mousedown.stop @touchstart.stop>
       <n-tabs type="segment" animated>
         <!-- Chart Settings Tab -->
@@ -75,7 +75,35 @@ const selectedElement = computed(() => {
   return null;
 });
 
-const isVisible = computed(() => !!selectedElement.value);
+const isVisible = computed(() => {
+  return selectedElement.value !== null && (selectedElement.value.type === 'echarts' || selectedElement.value.type === 'etable');
+});
+
+const panelStyle = computed(() => {
+  const el = selectedElement.value;
+  if (!el || !isVisible.value) return {};
+
+  const { scale, offsetX, offsetY, width } = ctx.state.runtime;
+  
+  // Calculate position: right side of the element
+  let left = (el.x + (el.width || 300)) * scale + offsetX + 16;
+  let top = el.y * scale + offsetY;
+  
+  const panelWidth = 280;
+  
+  // Flip to left side if it overflows the canvas container's right edge
+  if (left + panelWidth > width) {
+    left = el.x * scale + offsetX - panelWidth - 16;
+  }
+  
+  return {
+    left: `${left}px`,
+    top: `${Math.max(16, top)}px`,
+    right: 'auto',
+    bottom: 'auto'
+  };
+});
+
 const isChart = computed(() => selectedElement.value?.type === 'echarts');
 
 const chartTypeOptions = [

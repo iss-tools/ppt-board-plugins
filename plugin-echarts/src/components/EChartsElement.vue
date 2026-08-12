@@ -103,7 +103,10 @@ const renderChart = () => {
       };
     } else {
       if (showValue && seriesType !== 'candlestick' && seriesType !== 'heatmap' && seriesType !== 'radar') {
-        s.label = { show: true };
+        s.label = { 
+          show: true,
+          position: 'top'
+        };
       }
     }
     return s;
