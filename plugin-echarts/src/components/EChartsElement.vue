@@ -85,16 +85,152 @@ const renderChart = () => {
     series: generatedSeries
   };
 
-  if (dataset) {
+  // Remove cartesian axes for polar/non-cartesian charts to prevent errors
+  const nonCartesianTypes = ['pie', 'radar', 'funnel', 'sunburst', 'treemap'];
+  if (nonCartesianTypes.includes(seriesType)) {
+    delete finalOptions.xAxis;
+    delete finalOptions.yAxis;
+  }
+
+  // Auto-generate radar config if missing
+  if (seriesType === 'radar' && !finalOptions.radar) {
+    let indicators: any[] = [];
+    if (dataset && Array.isArray(dataset.source) && dataset.source.length > 1) {
+      if (layoutBy === 'row') {
+        // Categories are in the first row (cols 1..N)
+        const headers = dataset.source[0];
+        indicators = headers.slice(1).map((name: string) => ({ name: name || '?' }));
+      } else {
+        // Categories are in the first column (rows 1..N)
+        indicators = dataset.source.slice(1).map((row: any[]) => ({ name: row[0] || '?' }));
+      }
+    }
+    if (indicators.length === 0) {
+      indicators = [{ name: 'A' }, { name: 'B' }, { name: 'C' }];
+    }
+    finalOptions.radar = { indicator: indicators };
+  }
+
+  // Auto-generate visualMap and transform data for heatmap
+  if (seriesType === 'heatmap') {
+    finalOptions.xAxis = { type: 'category' };
+    finalOptions.yAxis = { type: 'category' };
+    
+    let min = 0;
+    let max = 100;
+    
+    if (dataset && Array.isArray(dataset.source) && dataset.source.length > 1) {
+      const xData: string[] = [];
+      const yData: string[] = [];
+      const heatmapData: [number, number, number][] = [];
+      
+      if (layoutBy === 'row') {
+         const headers = dataset.source[0];
+         for (let i = 1; i < headers.length; i++) xData.push(headers[i]);
+         for (let i = 1; i < dataset.source.length; i++) {
+            yData.push(dataset.source[i][0]);
+            for (let j = 1; j < dataset.source[i].length; j++) {
+               const val = Number(dataset.source[i][j]);
+               heatmapData.push([j - 1, i - 1, isNaN(val) ? 0 : val]);
+            }
+         }
+      } else {
+         const headers = dataset.source[0];
+         for (let i = 1; i < headers.length; i++) yData.push(headers[i]);
+         for (let i = 1; i < dataset.source.length; i++) {
+            xData.push(dataset.source[i][0]);
+            for (let j = 1; j < dataset.source[i].length; j++) {
+               const val = Number(dataset.source[i][j]);
+               heatmapData.push([i - 1, j - 1, isNaN(val) ? 0 : val]);
+            }
+         }
+      }
+
+      finalOptions.xAxis.data = xData;
+      finalOptions.yAxis.data = yData;
+      
+      finalOptions.series = [{
+         type: 'heatmap',
+         data: heatmapData,
+         label: { show: true }
+      }];
+      
+      const values = heatmapData.map(item => item[2]);
+      if (values.length > 0) {
+        min = Math.min(...values);
+        max = Math.max(...values);
+      }
+      
+      // Delete dataset so ECharts uses our mapped series data directly
+      delete finalOptions.dataset;
+    }
+
+    if (!finalOptions.visualMap) {
+      finalOptions.visualMap = {
+        min,
+        max,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '0%'
+      };
+    }
+  } else if (seriesType === 'candlestick') {
+    // Candlestick needs exactly 4 values per category: [open, close, lowest, highest]
+    finalOptions.xAxis = { type: 'category' };
+    finalOptions.yAxis = { type: 'value' };
+    
+    if (dataset && Array.isArray(dataset.source) && dataset.source.length > 1) {
+      const xData: string[] = [];
+      const kData: [number, number, number, number][] = [];
+      
+      if (layoutBy === 'row') {
+        const headers = dataset.source[0];
+        for (let i = 1; i < headers.length; i++) xData.push(headers[i]);
+        
+        for (let j = 1; j < headers.length; j++) {
+           const open = Number(dataset.source[1]?.[j]) || 0;
+           const close = Number(dataset.source[2]?.[j]) || open;
+           const lowest = Number(dataset.source[3]?.[j]) || Math.min(open, close);
+           const highest = Number(dataset.source[4]?.[j]) || Math.max(open, close);
+           kData.push([open, close, lowest, highest]);
+        }
+      } else {
+        for (let i = 1; i < dataset.source.length; i++) {
+           xData.push(dataset.source[i][0]);
+           const open = Number(dataset.source[i][1]) || 0;
+           const close = Number(dataset.source[i][2]) || open;
+           const lowest = Number(dataset.source[i][3]) || Math.min(open, close);
+           const highest = Number(dataset.source[i][4]) || Math.max(open, close);
+           kData.push([open, close, lowest, highest]);
+        }
+      }
+      
+      finalOptions.xAxis.data = xData;
+      finalOptions.series = [{
+         type: 'candlestick',
+         data: kData
+      }];
+      delete finalOptions.dataset;
+    }
+  } else if (dataset) {
     finalOptions.dataset = dataset;
   }
 
   // Merge the user option's series overrides (if any) onto the generated series
   if (userOptions.series && Array.isArray(userOptions.series)) {
-    finalOptions.series = generatedSeries.map((s, i) => ({
-      ...s,
-      ...(userOptions.series[i] || userOptions.series[0] || {})
-    }));
+    if ((seriesType === 'heatmap' || seriesType === 'candlestick') && Array.isArray(finalOptions.series) && finalOptions.series.length > 0) {
+      // For heatmap and candlestick, we have a single manually constructed series. Merge user options onto it without losing data.
+      finalOptions.series[0] = {
+        ...finalOptions.series[0],
+        ...(userOptions.series[0] || {})
+      };
+    } else {
+      finalOptions.series = generatedSeries.map((s, i) => ({
+        ...s,
+        ...(userOptions.series[i] || userOptions.series[0] || {})
+      }));
+    }
   }
 
   chartInstance.setOption(finalOptions, true);

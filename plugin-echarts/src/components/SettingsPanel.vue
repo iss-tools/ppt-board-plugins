@@ -77,6 +77,10 @@ const chartTypeOptions = [
   { label: '折线图 (Line)', value: 'line' },
   { label: '饼图 (Pie)', value: 'pie' },
   { label: '散点图 (Scatter)', value: 'scatter' },
+  { label: '漏斗图 (Funnel)', value: 'funnel' },
+  { label: '雷达图 (Radar)', value: 'radar' },
+  { label: '热力图 (Heatmap)', value: 'heatmap' },
+  { label: 'K线图 (Candlestick)', value: 'candlestick' },
 ];
 
 const globalChartType = computed({
