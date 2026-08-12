@@ -66,6 +66,7 @@ export default {
     rulers: '显示标尺',
     showSubtitle: '显示组件字幕',
     showPreviewControls: '显示预览控制面板',
+    remarks: '批注与评论',
   },
   controls: {
     zoomOut: '缩小',

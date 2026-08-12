@@ -66,6 +66,7 @@ export default {
     rulers: 'Show Rulers',
     showSubtitle: 'Show Component Subtitles',
     showPreviewControls: 'Show Preview Controls',
+    remarks: 'Remarks',
   },
   controls: {
     zoomOut: 'Zoom out',

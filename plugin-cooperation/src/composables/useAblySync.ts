@@ -11,6 +11,8 @@ export interface RemoteUser {
   x?: number;
   y?: number;
   selectedIds?: string[];
+  name?: string;
+  avatar?: string;
 }
 
 export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boolean; ablyApiKey?: string }) {
@@ -43,7 +45,10 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
       setTimeout(() => { isSyncing.value = false; }, 30);
     } else if (data.type === 'sync-full-state') {
       isSyncing.value = true;
-      ctx.state.runtime.activeElements = data.payload;
+      ctx.state.runtime.activeElements = data.payload.elements;
+      if (data.payload.pluginDatas) {
+        ctx.state.document.pluginDatas = data.payload.pluginDatas;
+      }
       setTimeout(() => { isSyncing.value = false; }, 30);
     } else if (data.type === 'sync-history-save') {
       // Remote user finished an action that requires a history snapshot.
@@ -195,6 +200,14 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
             ctx.api.elements.add(data.element, true);
           } else if (data.action === 'remove' && data.ids) {
             ctx.api.elements.remove(data.ids, true);
+          } else if (data.action === 'pluginData') {
+            if (!ctx.state.document.pluginDatas) ctx.state.document.pluginDatas = {};
+            if (!ctx.state.document.pluginDatas[data.pluginName]) ctx.state.document.pluginDatas[data.pluginName] = {};
+            if (!data.key) {
+              ctx.state.document.pluginDatas[data.pluginName] = data.value;
+            } else {
+              ctx.state.document.pluginDatas[data.pluginName][data.key] = data.value;
+            }
           }
           
           // Wait a tick before unlocking to prevent local echo
@@ -215,7 +228,11 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
         if (!msg.clientId || msg.clientId === mySenderId) return;
         // The host (or everyone) replies with the current state to the requester
         if (Object.keys(remoteUsers.value).length === 0 || mySenderId < msg.clientId) {
-          channel!.publish('sync-full-state', { target: msg.clientId, elements: ctx.state.runtime.activeElements });
+          channel!.publish('sync-full-state', { 
+            target: msg.clientId, 
+            elements: ctx.state.runtime.activeElements,
+            pluginDatas: ctx.state.document.pluginDatas 
+          });
         }
       });
       
@@ -223,6 +240,9 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
         if (msg.clientId === mySenderId || (msg.data.target && msg.data.target !== mySenderId)) return;
         isSyncing.value = true;
         ctx.state.runtime.activeElements = msg.data.elements;
+        if (msg.data.pluginDatas) {
+          ctx.state.document.pluginDatas = msg.data.pluginDatas;
+        }
         setTimeout(() => { isSyncing.value = false; }, 30);
       });
 
@@ -293,6 +313,16 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
   let lastPresenceUpdate = 0;
   let presenceUpdateTimer: any = null;
   const presenceState: Partial<RemoteUser> = {};
+  
+  // Try to load remark user for identity
+  try {
+    const remarkUserRaw = localStorage.getItem('ppt_board_remark_user');
+    if (remarkUserRaw) {
+      const remarkUser = JSON.parse(remarkUserRaw);
+      if (remarkUser.name) presenceState.name = remarkUser.name;
+      if (remarkUser.avatar) presenceState.avatar = remarkUser.avatar;
+    }
+  } catch(e) {}
 
   function updatePresence(data: Partial<RemoteUser>) {
     if (!channel || !isConnected.value) return;
@@ -366,7 +396,10 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
   const onHistoryRestore = (elements: any) => {
     if (!channel || currentMode.value !== 'edit' || isSyncing.value) return;
     // Broadcast full state to everyone when a local undo/redo happens
-    channel.publish('sync-full-state', { elements });
+    channel.publish('sync-full-state', { 
+      elements, 
+      pluginDatas: ctx.state.document.pluginDatas 
+    });
   };
   
   const onHistorySave = () => {
@@ -376,6 +409,11 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
       webrtc.broadcast(payload);
     }
     channel.publish('sync-history-save', {});
+  };
+
+  const onPluginDataChange = (data: { pluginName: string, key: string, value: any }) => {
+    if (!channel || currentMode.value !== 'edit' || isSyncing.value) return;
+    broadcastDelta('pluginData' as any, data, true); // use true to skip history if needed
   };
 
   ctx.hooks.on('element:update', onElementUpdate);
@@ -389,6 +427,7 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
   ctx.hooks.on('deselect', onDeselect);
   ctx.hooks.on('history:restore', onHistoryRestore);
   ctx.hooks.on('history:save', onHistorySave);
+  ctx.hooks.on('pluginData-change' as any, onPluginDataChange);
 
   onUnmounted(() => {
     ctx.hooks.off('element:update', onElementUpdate);
@@ -401,6 +440,7 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
     ctx.hooks.off('select', onSelect);
     ctx.hooks.off('deselect', onDeselect);
     ctx.hooks.off('history:restore', onHistoryRestore);
+    ctx.hooks.off('pluginData-change' as any, onPluginDataChange);
     disconnect();
   });
 

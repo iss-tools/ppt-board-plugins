@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { VueCanvasEditor } from '@iss-ai/ppt-board';
-import { ExamplePlugin } from '../src/index';
+import { RemarkPlugin } from '../src/index';
 import normalData from './data/normal.json';
 
 const editorRef = ref<InstanceType<typeof VueCanvasEditor> | null>(null);
@@ -27,7 +27,7 @@ const loadNormalData = () => {
 onMounted(() => {
   if (editorRef.value) {
     loadNormalData()
-    editorRef.value.usePlugin?.(ExamplePlugin);
+    editorRef.value.usePlugin?.(RemarkPlugin);
   }
 });
 </script>

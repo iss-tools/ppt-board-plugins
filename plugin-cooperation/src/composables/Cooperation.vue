@@ -5,8 +5,9 @@
       <div v-for="(sel, i) in remoteSelections" :key="i" :style="sel.style">
         <!-- Selection name badge -->
         <div
-          class="absolute -top-[20px] left-[-2px] px-1.5 py-0 bg-[#ff4d4f] text-white text-[10px] font-medium rounded shadow-sm whitespace-nowrap">
-          {{ sel.clientId.substring(0, 8) }}
+          class="absolute -top-[20px] left-[-2px] px-1.5 py-0 bg-[#ff4d4f] text-white text-[10px] font-medium rounded shadow-sm whitespace-nowrap flex items-center gap-1">
+          <img v-if="sel.avatar" :src="sel.avatar" class="w-3 h-3 rounded-full object-cover" />
+          {{ sel.name || sel.clientId.substring(0, 8) }}
         </div>
       </div>
     </div>
@@ -21,8 +22,9 @@
           <path d="M4 2L20 12L12 14L9 22L4 2Z" fill="#ff4d4f" stroke="white" stroke-width="2" stroke-linejoin="round" />
         </svg>
         <div
-          class="mt-1 ml-4 px-2 py-0.5 bg-[#ff4d4f] text-white text-[11px] font-medium rounded-full shadow-md whitespace-nowrap">
-          {{ user.clientId.substring(0, 8) }}
+          class="mt-1 ml-4 px-2 py-0.5 bg-[#ff4d4f] text-white text-[11px] font-medium rounded-full shadow-md whitespace-nowrap flex items-center gap-1">
+          <img v-if="user.avatar" :src="user.avatar" class="w-4 h-4 rounded-full object-cover" />
+          {{ user.name || user.clientId.substring(0, 8) }}
         </div>
       </div>
     </div>
@@ -201,6 +203,8 @@ const remoteSelections = computed(() => {
         if (el && el.width !== undefined && el.height !== undefined) {
           result.push({
             clientId: user.clientId,
+            name: user.name,
+            avatar: user.avatar,
             style: {
               left: `${el.x * scale.value + offsetX.value}px`,
               top: `${el.y * scale.value + offsetY.value}px`,

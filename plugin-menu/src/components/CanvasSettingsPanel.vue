@@ -95,6 +95,10 @@
         <span class="setting-label">{{ t('settings.rulers') }}</span>
         <n-switch :value="currentRulers" @update:value="updateRulers" size="small" />
       </div>
+      <div class="setting-item">
+        <span class="setting-label">{{ t('settings.remarks') }}</span>
+        <n-switch :value="currentRemarks" @update:value="updateRemarks" size="small" />
+      </div>
     </div>
   </div>
 </template>
@@ -252,6 +256,14 @@ const currentRulers = computed(() => !!ctx.state?.editor?.showRulers);
 const updateRulers = (val: boolean) => {
   if (ctx.api?.editor?.setParams) {
     ctx.api.editor.setParams({ showRulers: val });
+  }
+};
+
+// Remarks
+const currentRemarks = computed(() => !!ctx.state?.editor?.showRemarks);
+const updateRemarks = (val: boolean) => {
+  if (ctx.api?.editor?.setParams) {
+    ctx.api.editor.setParams({ showRemarks: val });
   }
 };
 

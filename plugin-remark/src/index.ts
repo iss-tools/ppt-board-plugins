@@ -1,78 +1,67 @@
 import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
-import ExampleOverlay from './ExampleOverlay.vue';
+import RemarkOverlay from './components/RemarkOverlay.vue';
+import { useRemarkUser } from './composables/useRemarkUser';
+import { useRemarkStore } from './store/useRemarkStore';
 
-export const ExamplePlugin: CanvasPlugin = {
-  name: 'vue-canvas-plugin-example',
+export const RemarkPlugin: CanvasPlugin = {
+  name: 'vue-canvas-plugin-remark',
 
   install(ctx: CanvasPluginContext) {
-    console.log('[ExamplePlugin] 🚀 Plugin Installed Successfully!');
+    console.log('[RemarkPlugin] 🚀 Plugin Installed Successfully!');
+
+    // Initialize random user identity
+    const { initUser } = useRemarkUser();
+    const currentUser = initUser();
+    console.log('[RemarkPlugin] Current User:', currentUser);
+
+    const remarkStore = useRemarkStore(ctx);
 
     // ==========================================
-    // 1. LISTEN TO CORE EVENTS
+    // 1. INJECT UI COMPONENTS
     // ==========================================
-    ctx.hooks.on('change', () => {
-      console.log(`[ExamplePlugin] Canvas changed!`);
-    });
-
-    ctx.hooks.on('select', selectedIds => {
-      console.log(`[ExamplePlugin] Selection updated:`, selectedIds);
-    });
-
-    ctx.hooks.on('language-change', lang => {
-      console.log(`[ExamplePlugin] Language switched to: ${lang}`);
-    });
+    ctx.api.editor.registerOverlay({ component: RemarkOverlay });
 
     // ==========================================
-    // 2. INJECT UI COMPONENTS
-    // ==========================================
-    // Inject a floating panel into the canvas area
-    ctx.api.editor.registerOverlay({ component: ExampleOverlay });
-
-    // ==========================================
-    // 3. REGISTER TOOLBAR ACTIONS
-    // ==========================================
-    ctx.api.editor.registerToolbarItem({
-      id: 'plugin-btn-add-rect',
-      icon: '⭐', // You can use emoji or SVG HTML strings here
-      label: 'test button!',
-      tooltip: 'Example: Add Golden Rect',
-      position: 'right',
-      onClick: () => {
-        // Use context API to mutate the canvas safely
-        ctx.api.elements.add({
-          id: `rect_${Date.now()}`,
-          type: 'TextElement',
-          x: 100,
-          y: 100,
-          width: 200,
-          height: 100,
-          props: {
-            text: 'I am from Plugin!',
-            style: 'background-color: #ffcc00; border: 2px solid #333; border-radius: 8px;',
-          }
-        });
-        alert('Added a Golden Rectangle to the canvas via Plugin API!');
-      },
-    });
-
-    // ==========================================
-    // 4. CONTEXT MENU ACTIONS
+    // 2. CONTEXT MENU ACTIONS (Add Remark)
     // ==========================================
     ctx.api.editor.registerContextMenuItem({
-      id: 'plugin-ctx-log',
-      label: 'Print Info to Console',
-      icon: '🖨️',
-      show: menuCtx => {
-        // Only show if user has selected at least 1 element
-        return menuCtx.selectedIds.length > 0;
-      },
+      id: 'plugin-ctx-add-remark',
+      label: 'Add Remark / 添加批注',
+      icon: '💬',
+      show: menuCtx => menuCtx.selectedIds.length === 1,
       onClick: menuCtx => {
-        console.log('[ExamplePlugin] Printing selected element IDs:', menuCtx.selectedIds);
+        const targetId = menuCtx.selectedIds[0];
+        const element = ctx.state.runtime.activeElements.find(e => e.id === targetId);
+        if (element) {
+          remarkStore.addRemarkThread(targetId, element, {
+            id: `comment_${Date.now()}`,
+            userId: currentUser.userId,
+            userName: currentUser.name,
+            userAvatar: currentUser.avatar,
+            content: 'New remark...',
+            timestamp: Date.now()
+          });
+        }
+      },
+    });
+
+    // ==========================================
+    // 3. TOOLBAR ACTIONS (Toggle Visibility)
+    // ==========================================
+    ctx.api.editor.registerToolbarItem({
+      id: 'plugin-btn-toggle-remark',
+      icon: '👁️',
+      label: 'Toggle Remarks',
+      tooltip: 'Show/Hide Remarks on Canvas',
+      position: 'right',
+      onClick: () => {
+        remarkStore.toggleShowRemarks();
       },
     });
   },
 
   destroy() {
-    console.log('[ExamplePlugin] 🛑 Plugin Destroyed and cleaned up.');
+    console.log('[RemarkPlugin] 🛑 Plugin Destroyed and cleaned up.');
   },
 };
+
