@@ -20,5 +20,12 @@ export default {
   cancel: 'Cancel',
   newPresentation: 'New Presentation',
   newPresentationCopy: 'New Presentation (Copy)',
-  copySuffix: ' (Copy)'
+  copySuffix: ' (Copy)',
+  exportOptions: 'Export options',
+  exportPage: 'Export current page',
+  exportDoc: 'Export current document',
+  exportAll: 'Export all documents',
+  exportSuccess: 'Export successful',
+  exportFailed: 'Export failed',
+  noDocsToExport: 'No documents to export'
 };

@@ -233,29 +233,46 @@
             </div>
           </n-dropdown>
 
-          <n-button
-            quaternary
-            circle
-            size="small"
-            style="margin-left: 12px"
-            @click="exportAllDocs"
-            :title="t('exportAll') || '导出全部'"
+          <n-dropdown
+            trigger="hover"
+            placement="top-end"
+            :show-arrow="true"
+            :options="exportOptions"
+            @select="handleExportMenu"
           >
-            <template #icon>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            <div
+              style="
+                padding: 12px 0 12px 12px;
+                margin: -8px 0 -8px 0;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+              "
+            >
+              <n-button
+                quaternary
+                circle
+                size="small"
+                :title="t('exportOptions') || '导出选项'"
+                style="pointer-events: none"
               >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-            </template>
-          </n-button>
+                <template #icon>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                </template>
+              </n-button>
+            </div>
+          </n-dropdown>
         </div>
       </div>
     </n-config-provider>
@@ -577,25 +594,82 @@ const handleSave = () => {
   handleSaveMenu('save');
 };
 
-const exportAllDocs = async () => {
+const pageIcon = () =>
+  h(
+    'svg',
+    { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+    [
+      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', ry: '2' }),
+      h('line', { x1: '3', y1: '9', x2: '21', y2: '9' }),
+      h('line', { x1: '9', y1: '21', x2: '9', y2: '9' }),
+    ]
+  );
+
+const docIcon = () =>
+  h(
+    'svg',
+    { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+    [
+      h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
+      h('polyline', { points: '14 2 14 8 20 8' }),
+      h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }),
+      h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
+      h('polyline', { points: '10 9 9 9 8 9' }),
+    ]
+  );
+
+const allDocsIcon = () =>
+  h(
+    'svg',
+    { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+    [
+      h('rect', { x: '2', y: '7', width: '20', height: '14', rx: '2', ry: '2' }),
+      h('path', { d: 'M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16' }),
+    ]
+  );
+
+const exportOptions = computed(() => [
+  { label: t('exportPage') || '导出当前页', key: 'export-page', icon: renderIcon(pageIcon) },
+  { label: t('exportDoc') || '导出当前文档', key: 'export-doc', icon: renderIcon(docIcon) },
+  { label: t('exportAll') || '导出所有文档', key: 'export-all', icon: renderIcon(allDocsIcon) },
+]);
+
+const downloadJson = (data: any, filename: string) => {
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const handleExportMenu = async (key: string) => {
   try {
-    const allDocs = await store.getList();
-    if (!allDocs || allDocs.length === 0) {
-      message.warning('没有可导出的数据');
-      return;
+    if (key === 'export-page') {
+      const docData = ctx.api?.project?.get ? ctx.api.project.get() : ctx.state.document;
+      const slideIndex = ctx.state.runtime?.currentSlideIndex || 0;
+      const slideData = docData.slides?.[slideIndex] || { elements: [] };
+      downloadJson(slideData, `ppt-board-page-${slideIndex + 1}-${Date.now()}.json`);
+      message.success(t('exportSuccess') || '导出成功');
+    } else if (key === 'export-doc') {
+      const docData = ctx.api?.project?.get ? ctx.api.project.get() : ctx.state.document;
+      const docId = docData.id || Date.now();
+      downloadJson(docData, `ppt-board-document-${docId}.json`);
+      message.success(t('exportSuccess') || '导出成功');
+    } else if (key === 'export-all') {
+      const allDocs = await store.getList();
+      if (!allDocs || allDocs.length === 0) {
+        message.warning(t('noDocsToExport') || '没有可导出的数据');
+        return;
+      }
+      downloadJson(allDocs, `ppt-board-all-data-${Date.now()}.json`);
+      message.success(t('exportSuccess') || '导出成功');
     }
-    const jsonStr = JSON.stringify(allDocs, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ppt-board-all-data-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success('导出成功');
   } catch (error) {
-    console.error('导出全部数据失败:', error);
-    message.error('导出失败');
+    console.error('Export failed:', error);
+    message.error(t('exportFailed') || '导出失败');
   }
 };
 

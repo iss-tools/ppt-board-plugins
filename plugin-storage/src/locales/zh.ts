@@ -20,5 +20,12 @@ export default {
   cancel: '取消',
   newPresentation: '未命名文档',
   newPresentationCopy: '未命名文档 (副本)',
-  copySuffix: ' (副本)'
+  copySuffix: ' (副本)',
+  exportOptions: '导出选项',
+  exportPage: '导出当前页',
+  exportDoc: '导出当前文档',
+  exportAll: '导出所有文档',
+  exportSuccess: '导出成功',
+  exportFailed: '导出失败',
+  noDocsToExport: '没有可导出的数据'
 };
