@@ -1,78 +1,129 @@
 import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
-import ExampleOverlay from './ExampleOverlay.vue';
+import { ref } from 'vue';
+import FormulaPanel from './components/FormulaPanel.vue';
+import MathElement from './components/MathElement.vue';
+import zhLocale from './locales/zh';
+import enLocale from './locales/en';
 
-export const ExamplePlugin: CanvasPlugin = {
-  name: 'vue-canvas-plugin-example',
+export const KatexPlugin: CanvasPlugin = {
+  name: 'plugin-katex',
 
   install(ctx: CanvasPluginContext) {
-    console.log('[ExamplePlugin] 🚀 Plugin Installed Successfully!');
+    console.log('[KatexPlugin] 🚀 Plugin Installed Successfully!');
 
-    // ==========================================
-    // 1. LISTEN TO CORE EVENTS
-    // ==========================================
-    ctx.hooks.on('change', () => {
-      console.log(`[ExamplePlugin] Canvas changed!`);
+    // 1. Register Locales (Assuming context has a way to register locales, or we merge them. 
+    // If ctx.api.editor.t doesn't support dynamic registering, we can manually check or just use them locally.
+    // For now, if the app uses i18n, we might need a standard way, but we will rely on ctx.api.editor.t with a fallback)
+    // Here we can inject into the global window or just use it internally.
+    const locales = {
+      zh: zhLocale.katex,
+      en: enLocale.katex,
+    };
+    
+    // Polyfill translation if host doesn't have it
+    const originalT = ctx.api.editor.t;
+    ctx.api.editor.t = (key: string, ...args: any[]) => {
+      if (key.startsWith('katex.')) {
+        const lang = ctx.state.editor.language || 'zh';
+        const keys = key.split('.').slice(1);
+        let val: any = locales[lang as keyof typeof locales];
+        for (const k of keys) {
+          if (val) val = val[k];
+        }
+        if (val) return val;
+      }
+      return originalT ? originalT(key, ...args) : key;
+    };
+
+    // 2. Register MathElement Component
+    if (ctx.api.elements && ctx.api.elements.register) {
+      ctx.api.elements.register({ MathElement });
+    }
+
+    // 3. Panel Visibility State
+    const isPanelVisible = ref(false);
+
+    // 4. Register Overlay
+    import('vue').then(({ h }) => {
+      ctx.api.editor.registerOverlay({
+        show: () => isPanelVisible.value,
+        component: {
+          render() {
+            return h(FormulaPanel, {
+              ctx: ctx,
+              onClose: () => {
+                isPanelVisible.value = false;
+              }
+            });
+          }
+        }
+      });
     });
 
-    ctx.hooks.on('select', selectedIds => {
-      console.log(`[ExamplePlugin] Selection updated:`, selectedIds);
-    });
-
-    ctx.hooks.on('language-change', lang => {
-      console.log(`[ExamplePlugin] Language switched to: ${lang}`);
-    });
-
-    // ==========================================
-    // 2. INJECT UI COMPONENTS
-    // ==========================================
-    // Inject a floating panel into the canvas area
-    ctx.api.editor.registerOverlay({ component: ExampleOverlay });
-
-    // ==========================================
-    // 3. REGISTER TOOLBAR ACTIONS
-    // ==========================================
+    // 5. Register Toolbar Action
     ctx.api.editor.registerToolbarItem({
-      id: 'plugin-btn-add-rect',
-      icon: '⭐', // You can use emoji or SVG HTML strings here
-      label: 'test button!',
-      tooltip: 'Example: Add Golden Rect',
+      id: 'plugin-katex-btn',
+      icon: '<b style="font-family: serif; font-size: 16px;">∑</b>', 
+      label: 'Formula',
+      tooltip: ctx.api.editor.t('katex.toolbar.tooltip'),
       position: 'right',
       onClick: () => {
-        // Use context API to mutate the canvas safely
+        isPanelVisible.value = !isPanelVisible.value;
+      },
+    });
+
+    // 6. Handle Paste Event via hooks
+    const handlePaste = (e: ClipboardEvent | null, pasteContext: any, rawText: string, html: string, mouseX: number, mouseY: number) => {
+      // Only process paste if we are in edit mode
+      if (ctx.state.runtime.mode !== 'edit') return;
+      if (pasteContext && pasteContext.handled) return;
+
+      const text = rawText ? rawText.trim() : '';
+      if (!text) return;
+
+      // Check if it's LaTeX (heuristic)
+      const isLatex = text.startsWith('$$') || text.startsWith('\\') || (text.startsWith('$') && text.endsWith('$'));
+      if (isLatex) {
+        if (pasteContext) {
+          pasteContext.handled = true;
+        }
+        
+        let latex = text;
+        // clean up $$ or $ wrapping
+        if (latex.startsWith('$$') && latex.endsWith('$$')) {
+          latex = latex.substring(2, latex.length - 2).trim();
+        } else if (latex.startsWith('$') && latex.endsWith('$')) {
+          latex = latex.substring(1, latex.length - 1).trim();
+        }
+
         ctx.api.elements.add({
-          id: `rect_${Date.now()}`,
-          type: 'TextElement',
-          x: 100,
-          y: 100,
+          id: `MathElement_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          type: 'MathElement',
+          x: mouseX - 100,
+          y: mouseY - 50,
           width: 200,
           height: 100,
           props: {
-            text: 'I am from Plugin!',
-            style: 'background-color: #ffcc00; border: 2px solid #333; border-radius: 8px;',
+            latex,
+            fontSize: 32,
           }
         });
-        alert('Added a Golden Rectangle to the canvas via Plugin API!');
-      },
-    });
-
-    // ==========================================
-    // 4. CONTEXT MENU ACTIONS
-    // ==========================================
-    ctx.api.editor.registerContextMenuItem({
-      id: 'plugin-ctx-log',
-      label: 'Print Info to Console',
-      icon: '🖨️',
-      show: menuCtx => {
-        // Only show if user has selected at least 1 element
-        return menuCtx.selectedIds.length > 0;
-      },
-      onClick: menuCtx => {
-        console.log('[ExamplePlugin] Printing selected element IDs:', menuCtx.selectedIds);
-      },
-    });
+      }
+    };
+    
+    ctx.hooks.on('paste', handlePaste);
+    
+    // Store it so we can remove it on destroy
+    (this as any)._pasteHandler = handlePaste;
+    (this as any)._ctx = ctx;
   },
 
   destroy() {
-    console.log('[ExamplePlugin] 🛑 Plugin Destroyed and cleaned up.');
+    console.log('[KatexPlugin] 🛑 Plugin Destroyed');
+    if ((this as any)._pasteHandler && (this as any)._ctx) {
+      (this as any)._ctx.hooks.off('paste', (this as any)._pasteHandler);
+    }
   },
 };
+
+export default KatexPlugin;
