@@ -23,6 +23,12 @@
                   </n-radio>
                 </n-space>
               </n-radio-group>
+              
+              <n-text depth="3" style="margin-top: 12px;">标签显示设置</n-text>
+              <n-space vertical :size="8">
+                <n-checkbox v-model:checked="showLabelValue">显示数值</n-checkbox>
+                <n-checkbox v-model:checked="showLabelPercent" :disabled="!isPercentSupported">显示占比 (仅饼图/漏斗图)</n-checkbox>
+              </n-space>
             </n-space>
           </div>
         </n-tab-pane>
@@ -51,7 +57,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { NConfigProvider, NTabs, NTabPane, NSpace, NText, NSelect, NInput, NButton, NRadioGroup, NRadio, darkTheme } from 'naive-ui';
+import { NConfigProvider, NTabs, NTabPane, NSpace, NText, NSelect, NInput, NButton, NRadioGroup, NRadio, NCheckbox, darkTheme } from 'naive-ui';
 import { useCanvasContext } from '@iss-ai/ppt-board';
 
 const ctx = useCanvasContext();
@@ -129,6 +135,36 @@ const seriesLayoutBy = computed({
           ...currentOption,
           seriesLayoutBy: newLayout
         }
+      }
+    });
+  }
+});
+
+const isPercentSupported = computed(() => {
+  return globalChartType.value === 'pie' || globalChartType.value === 'funnel';
+});
+
+const showLabelValue = computed({
+  get: () => selectedElement.value?.props?.custom_showValue !== false,
+  set: (val: boolean) => {
+    if (!selectedElement.value) return;
+    ctx.api.elements.update(selectedElement.value.id, {
+      props: {
+        ...selectedElement.value.props,
+        custom_showValue: val
+      }
+    });
+  }
+});
+
+const showLabelPercent = computed({
+  get: () => selectedElement.value?.props?.custom_showPercent !== false,
+  set: (val: boolean) => {
+    if (!selectedElement.value) return;
+    ctx.api.elements.update(selectedElement.value.id, {
+      props: {
+        ...selectedElement.value.props,
+        custom_showPercent: val
       }
     });
   }

@@ -74,10 +74,40 @@ const renderChart = () => {
     numSeries = 1;
   }
 
-  const generatedSeries = Array.from({ length: numSeries }).map(() => ({
-    type: seriesType,
-    seriesLayoutBy: layoutBy
-  }));
+  const showValue = props.element.props?.custom_showValue !== false;
+  const showPercent = props.element.props?.custom_showPercent !== false;
+
+  const generatedSeries = Array.from({ length: numSeries }).map(() => {
+    const s: any = {
+      type: seriesType,
+      seriesLayoutBy: layoutBy
+    };
+    
+    // Auto-show percentage for charts that natively support it ({d})
+    if (seriesType === 'pie' || seriesType === 'funnel') {
+      s.label = {
+        show: true,
+        formatter: function(params: any) {
+          let val = params.value;
+          if (Array.isArray(val)) {
+            // ECharts maps a specific dimension to the pie value
+            const encodeIdx = params.encode?.value?.[0];
+            val = encodeIdx !== undefined ? val[encodeIdx] : val[1];
+          }
+          
+          let res = params.name;
+          if (showValue) res += `: ${val}`;
+          if (showPercent) res += ` (${params.percent}%)`;
+          return res;
+        }
+      };
+    } else {
+      if (showValue && seriesType !== 'candlestick' && seriesType !== 'heatmap' && seriesType !== 'radar') {
+        s.label = { show: true };
+      }
+    }
+    return s;
+  });
 
   const finalOptions: echarts.EChartsCoreOption = {
     ...defaultChartOptions,
