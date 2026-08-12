@@ -5,7 +5,7 @@
       <p style="font-size: 12px; margin: 0;">Open console to see plugin event logs</p>
     </div>
     <div style="flex: 1; position: relative;">
-      <VueCanvasEditor ref="editorRef" />
+      <VueCanvasEditor ref="editorRef" :plugins="[EChartsPlugin]" />
     </div>
   </div>
 </template>
@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { VueCanvasEditor } from '@iss-ai/ppt-board';
-import { ExamplePlugin } from '../src/index';
+import { EChartsPlugin } from '../src/index';
 import normalData from './data/normal.json';
 
 const editorRef = ref<InstanceType<typeof VueCanvasEditor> | null>(null);
@@ -26,8 +26,7 @@ const loadNormalData = () => {
 };
 onMounted(() => {
   if (editorRef.value) {
-    loadNormalData()
-    editorRef.value.usePlugin?.(ExamplePlugin);
+    loadNormalData();
   }
 });
 </script>

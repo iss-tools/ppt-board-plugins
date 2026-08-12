@@ -1,78 +1,97 @@
 import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
-import ExampleOverlay from './ExampleOverlay.vue';
+import EChartsElement from './components/EChartsElement.vue';
+import ETableElement from './components/ETableElement.vue';
+import PastePromptOverlay from './components/PastePromptOverlay.vue';
+import { requestPasteChoice } from './store';
 
-export const ExamplePlugin: CanvasPlugin = {
-  name: 'vue-canvas-plugin-example',
+export const EChartsPlugin: CanvasPlugin = {
+  name: 'plugin-echarts',
 
   install(ctx: CanvasPluginContext) {
-    console.log('[ExamplePlugin] 🚀 Plugin Installed Successfully!');
+    console.log('[EChartsPlugin] 🚀 Plugin Installed Successfully!');
 
-    // ==========================================
-    // 1. LISTEN TO CORE EVENTS
-    // ==========================================
-    ctx.hooks.on('change', () => {
-      console.log(`[ExamplePlugin] Canvas changed!`);
-    });
+    // 1. Register Components
+    if (ctx.api.elements && ctx.api.elements.register) {
+      ctx.api.elements.register({ 
+        echarts: EChartsElement,
+        'e-table': ETableElement 
+      });
+    }
 
-    ctx.hooks.on('select', selectedIds => {
-      console.log(`[ExamplePlugin] Selection updated:`, selectedIds);
-    });
+    // 2. Register UI Overlay
+    if (ctx.api.editor && ctx.api.editor.registerOverlay) {
+      ctx.api.editor.registerOverlay({ component: PastePromptOverlay });
+    }
 
-    ctx.hooks.on('language-change', lang => {
-      console.log(`[ExamplePlugin] Language switched to: ${lang}`);
-    });
+    // 3. Handle Paste Event via hooks
+    const handlePaste = async (e: ClipboardEvent | null, pasteContext: any, rawText: string, html: string, mouseX: number, mouseY: number) => {
+      console.log('[EChartsPlugin] handlePaste triggered', { rawText, html, pasteContext });
+      if (ctx.state.runtime.mode !== 'edit') return;
+      if (pasteContext && pasteContext.handled) return;
 
-    // ==========================================
-    // 2. INJECT UI COMPONENTS
-    // ==========================================
-    // Inject a floating panel into the canvas area
-    ctx.api.editor.registerOverlay({ component: ExampleOverlay });
+      const text = rawText ? rawText.trim() : '';
+      
+      // Detect tabular data (TSV or HTML Table)
+      const isTableHtml = html && html.toLowerCase().includes('<table');
+      const isTsv = text.includes('\t');
 
-    // ==========================================
-    // 3. REGISTER TOOLBAR ACTIONS
-    // ==========================================
-    ctx.api.editor.registerToolbarItem({
-      id: 'plugin-btn-add-rect',
-      icon: '⭐', // You can use emoji or SVG HTML strings here
-      label: 'test button!',
-      tooltip: 'Example: Add Golden Rect',
-      position: 'right',
-      onClick: () => {
-        // Use context API to mutate the canvas safely
+      console.log('[EChartsPlugin] detection:', { isTableHtml, isTsv, hasNewline: text.includes('\n') });
+
+      if (isTableHtml || isTsv || (text && text.includes('\n') && !text.includes('<svg'))) {
+        console.log('[EChartsPlugin] Matched table conditions, handling...');
+        // Mark as handled to prevent core fallback synchronously!
+        if (pasteContext) {
+          pasteContext.handled = true;
+          console.log('[EChartsPlugin] set pasteContext.handled = true', pasteContext);
+        }
+
+        // Parse to 2D Array
+        const lines = text ? text.split('\n') : [];
+        const dataMatrix = lines.length > 0 
+          ? lines.map(line => line.split('\t').map(cell => cell.trim()))
+          : [['Data from HTML (parsing not implemented)']];
+
+        // Show prompt and wait for user choice
+        const choice = await requestPasteChoice(dataMatrix, mouseX, mouseY);
+
+        if (choice === 'cancel') return;
+
+        const newId = `${choice === 'chart' ? 'echarts' : 'e-table'}_${Date.now()}`;
+        
         ctx.api.elements.add({
-          id: `rect_${Date.now()}`,
-          type: 'TextElement',
-          x: 100,
-          y: 100,
-          width: 200,
-          height: 100,
+          id: newId,
+          type: choice === 'chart' ? 'echarts' : 'e-table',
+          x: mouseX,
+          y: mouseY,
+          width: choice === 'chart' ? 400 : 300,
+          height: choice === 'chart' ? 300 : 200,
           props: {
-            text: 'I am from Plugin!',
-            style: 'background-color: #ffcc00; border: 2px solid #333; border-radius: 8px;',
+            dataset: {
+              source: dataMatrix
+            }
           }
         });
-        alert('Added a Golden Rectangle to the canvas via Plugin API!');
-      },
-    });
+        
+        if (ctx.state.runtime) {
+          ctx.state.runtime.selectedIds.clear();
+          ctx.state.runtime.selectedIds.add(newId);
+        }
+      }
+    };
 
-    // ==========================================
-    // 4. CONTEXT MENU ACTIONS
-    // ==========================================
-    ctx.api.editor.registerContextMenuItem({
-      id: 'plugin-ctx-log',
-      label: 'Print Info to Console',
-      icon: '🖨️',
-      show: menuCtx => {
-        // Only show if user has selected at least 1 element
-        return menuCtx.selectedIds.length > 0;
-      },
-      onClick: menuCtx => {
-        console.log('[ExamplePlugin] Printing selected element IDs:', menuCtx.selectedIds);
-      },
-    });
+    ctx.hooks.on('paste', handlePaste);
+
+    // Store it so we can remove it on destroy
+    (this as any)._pasteHandler = handlePaste;
+    (this as any)._ctx = ctx;
   },
 
   destroy() {
-    console.log('[ExamplePlugin] 🛑 Plugin Destroyed and cleaned up.');
+    console.log('[EChartsPlugin] 🛑 Plugin Destroyed');
+    if ((this as any)._pasteHandler && (this as any)._ctx) {
+      (this as any)._ctx.hooks.off('paste', (this as any)._pasteHandler);
+    }
   },
 };
+
+export default EChartsPlugin;
