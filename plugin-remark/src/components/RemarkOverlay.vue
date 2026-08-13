@@ -26,6 +26,44 @@
       <!-- Search Header -->
       <div class="excal-search-header">
         <div class="search-and-close">
+          <div class="user-profile-trigger" @click.stop="toggleProfileMenu">
+            <AvatarIcon 
+              :src="currentUser?.avatar || ''" 
+              :name="currentUser?.name || ''"
+              :userId="currentUser?.userId || ''"
+              class="trigger-avatar"
+            />
+            <!-- Profile Settings Popover -->
+            <div class="profile-popover" v-if="showProfileMenu" @click.stop>
+              <div class="profile-avatar-large" @click.stop="shuffleAvatar" title="Click to randomly change avatar">
+                <AvatarIcon 
+                  :src="currentUser?.avatar || ''" 
+                  :name="currentUser?.name || ''"
+                  :userId="currentUser?.userId || ''"
+                  class="large-avatar"
+                />
+                <div class="shuffle-overlay">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21L21.5 8"></path></svg>
+                </div>
+              </div>
+              <div class="profile-actions">
+                <span class="upload-link" @click="triggerUpload">Upload Custom</span>
+              </div>
+              <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;" />
+              <div class="profile-name-input" style="display: flex; gap: 4px; align-items: center;">
+                <input 
+                  type="text" 
+                  v-model="tempUserName"
+                  @blur="saveUserName"
+                  @keyup.enter="saveUserName"
+                  placeholder="Your name"
+                />
+                <button class="icon-btn" @click.stop="randomizeName" title="Randomize Name" style="width: 28px; height: 28px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21L21.5 8"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="search-input-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input type="text" placeholder="Quick search" v-model="searchQuery" />
@@ -58,7 +96,7 @@
       <div class="global-remark-input">
         <input 
           type="text" 
-          :placeholder="remarkPlaceholder" 
+          :placeholder="`Add remark as ${currentUser?.name || 'User'}...`" 
           v-model="globalRemarkText"
           @keyup.enter="handleGlobalReply"
         />
@@ -225,7 +263,7 @@ const {
   showRemarks, getElementRemarks, getAllRemarks, addReply, addRemarkThread, deleteComment, updateComment,
   readThreadIds, markAsRead, markAllAsRead 
 } = remarkStore;
-const { currentUser } = useRemarkUser();
+const { currentUser, updateUser, generateRandomName } = useRemarkUser();
 
 const forceClosedSidebar = ref(false);
 const expandedThreadId = ref<string | null>(null);
@@ -239,6 +277,82 @@ const activeMenuId = ref<string | null>(null);
 const filterColor = ref<string | null>(null);
 const filterStyles = ref<string[]>([]);
 const showResolved = ref(false);
+
+const showProfileMenu = ref(false);
+const tempUserName = ref('');
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value;
+  if (showProfileMenu.value && currentUser.value) {
+    tempUserName.value = currentUser.value.name;
+    activeMenuId.value = null; // hide other menus
+  }
+};
+
+const shuffleAvatar = () => {
+  const randomId = Math.floor(Math.random() * 50) + 1;
+  const newAvatar = `/avatar/scenery_${randomId}.jpg`;
+  updateUser({ avatar: newAvatar });
+};
+
+const triggerUpload = () => {
+  if (fileInput.value) {
+    fileInput.value.click();
+  }
+};
+
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSize = 200;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height && width > maxSize) {
+          height *= maxSize / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          updateUser({ avatar: compressedDataUrl });
+        }
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+  if (target) {
+    target.value = '';
+  }
+};
+
+const saveUserName = () => {
+  if (tempUserName.value.trim() && tempUserName.value !== currentUser.value?.name) {
+    updateUser({ name: tempUserName.value.trim() });
+  }
+};
+
+const randomizeName = () => {
+  tempUserName.value = generateRandomName();
+  saveUserName();
+};
 
 const toggleFilter = (color: string) => {
   filterColor.value = filterColor.value === color ? null : color;
@@ -259,11 +373,13 @@ const clearFilters = () => {
 
 const toggleMoreMenu = (id: string) => {
   activeMenuId.value = activeMenuId.value === id ? null : id;
+  showProfileMenu.value = false;
 };
 
 const handleGlobalClick = () => {
   activeMenuId.value = null;
   showSortDropdown.value = false;
+  showProfileMenu.value = false;
 };
 
 onMounted(() => {
@@ -735,11 +851,104 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .global-remark-input {
+  display: flex; align-items: center; margin: 12px 16px;
+  background: #f3f4f6; border-radius: 8px; padding: 4px 4px 4px 12px;
+}
+
+.user-profile-trigger {
+  position: relative;
+  cursor: pointer;
   display: flex;
-  padding: 12px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid #f3f4f6;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.user-profile-trigger .trigger-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.user-profile-trigger:hover .trigger-avatar {
+  border-color: #6366f1;
+}
+
+.profile-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  padding: 16px;
+  width: 200px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar-large {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.profile-avatar-large .large-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.profile-avatar-large .shuffle-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.profile-avatar-large:hover .shuffle-overlay {
+  opacity: 1;
+}
+
+.profile-actions {
+  font-size: 12px;
+  margin-top: -8px;
+}
+.upload-link {
+  color: #6366f1;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+.upload-link:hover {
+  color: #4f46e5;
+}
+
+.profile-name-input {
+  width: 100%;
+}
+.profile-name-input input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+  background: #f9fafb;
+}
+.profile-name-input input:focus {
+  border-color: #6366f1;
+  background: #fff;
 }
 
 .global-remark-input input {

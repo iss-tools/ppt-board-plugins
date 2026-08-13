@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -28,6 +28,10 @@ const props = defineProps<{
 }>();
 
 const hasError = ref(false);
+
+watch(() => props.src, () => {
+  hasError.value = false;
+});
 
 const initials = computed(() => {
   if (!props.name) return '?';

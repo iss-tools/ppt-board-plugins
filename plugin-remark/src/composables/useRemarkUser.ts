@@ -8,18 +8,34 @@ export interface RemarkUser {
 
 const STORAGE_KEY = 'ppt_board_remark_user';
 
-const adjectives = ['Happy', 'Lucky', 'Sunny', 'Cool', 'Brave', 'Smart', 'Quick', 'Fast', 'Super', 'Magic'];
-const nouns = ['Cat', 'Dog', 'Fox', 'Bear', 'Lion', 'Tiger', 'Wolf', 'Eagle', 'Shark', 'Panda'];
+const adjectives = [
+  'Happy', 'Lucky', 'Sunny', 'Cool', 'Brave', 'Smart', 'Quick', 'Fast', 'Super', 'Magic',
+  'Wild', 'Fierce', 'Gentle', 'Bold', 'Calm', 'Bright', 'Swift', 'Mighty', 'Eager', 'Witty',
+  'Silent', 'Clever', 'Sharp', 'Noble', 'Proud', 'Busy', 'Keen', 'Epic', 'Chill', 'Zesty',
+  'Jolly', 'Grand', 'Shiny', 'Sleek', 'Fresh', 'Crisp', 'Lively', 'Funky', 'Crazy', 'Dapper',
+  'Feisty', 'Quirky', 'Snappy', 'Plump', 'Nimble', 'Merry', 'Cozy', 'Daring', 'Neon', 'Breezy'
+];
+const nouns = [
+  'Cat', 'Dog', 'Fox', 'Bear', 'Lion', 'Tiger', 'Wolf', 'Eagle', 'Shark', 'Panda',
+  'Owl', 'Hawk', 'Falcon', 'Raven', 'Deer', 'Moose', 'Elk', 'Rhino', 'Hippo', 'Zebra',
+  'Camel', 'Llama', 'Alpaca', 'Sheep', 'Goat', 'Frog', 'Toad', 'Snake', 'Lizard', 'Gecko',
+  'Turtle', 'Whale', 'Dolphin', 'Seal', 'Walrus', 'Otter', 'Beaver', 'Badger', 'Sloth', 'Koala',
+  'Kangaroo', 'Wombat', 'Possum', 'Raccoon', 'Skunk', 'Mouse', 'Rat', 'Hamster', 'Gerbil', 'Swan'
+];
 
-function generateRandomUser(): RemarkUser {
+export function generateRandomName(): string {
   const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+  return `${randomAdjective} ${randomNoun}`;
+}
+
+function generateRandomUser(): RemarkUser {
   const randomId = Math.floor(Math.random() * 50) + 1;
 
   return {
     userId: `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-    name: `${randomAdjective} ${randomNoun}`,
-    avatar: `/avatar/avatar_${randomId}.svg`,
+    name: generateRandomName(),
+    avatar: `/avatar/scenery_${randomId}.jpg`,
   };
 }
 
@@ -47,8 +63,17 @@ export function useRemarkUser() {
     return newUser;
   };
 
+  const updateUser = (updates: Partial<RemarkUser>) => {
+    if (currentUser.value) {
+      currentUser.value = { ...currentUser.value, ...updates };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser.value));
+    }
+  };
+
   return {
     currentUser,
     initUser,
+    updateUser,
+    generateRandomName,
   };
 }
