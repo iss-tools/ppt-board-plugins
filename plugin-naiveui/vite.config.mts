@@ -12,6 +12,9 @@ export default defineConfig({
       tsconfigPath: './tsconfig.json',
     }),
   ],
+  resolve: {
+    dedupe: ['vue']
+  },
   build: {
     outDir: 'lib',
     emptyOutDir: false,

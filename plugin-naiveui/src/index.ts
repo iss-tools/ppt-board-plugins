@@ -1,78 +1,97 @@
 import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
-import ExampleOverlay from './ExampleOverlay.vue';
+import NaivePropertyPanel from './components/NaivePropertyPanel.vue';
+import NaiveWidget from './components/NaiveWidget.vue';
 
-export const ExamplePlugin: CanvasPlugin = {
-  name: 'vue-canvas-plugin-example',
+import { markRaw } from 'vue';
+import * as NaiveUI from 'naive-ui';
+
+export const NaiveUIPlugin: CanvasPlugin = {
+  name: 'vue-canvas-plugin-naiveui',
 
   install(ctx: CanvasPluginContext) {
-    console.log('[ExamplePlugin] 🚀 Plugin Installed Successfully!');
+    console.log('[NaiveUIPlugin] 🚀 Installing Naive UI Widget Engine...');
 
-    // ==========================================
-    // 1. LISTEN TO CORE EVENTS
-    // ==========================================
-    ctx.hooks.on('change', () => {
-      console.log(`[ExamplePlugin] Canvas changed!`);
+    // 1. Register the Universal Naive Widget
+    const naiveComponents: Record<string, any> = {};
+    for (const key of Object.keys(NaiveUI)) {
+      if (key.startsWith('N')) {
+         naiveComponents[key] = markRaw(NaiveWidget);
+      }
+    }
+
+    ctx.api.elements.register({ 
+      NaiveWidget: markRaw(NaiveWidget),
+      ...naiveComponents
     });
 
-    ctx.hooks.on('select', selectedIds => {
-      console.log(`[ExamplePlugin] Selection updated:`, selectedIds);
-    });
+    console.log('[NaiveUIPlugin] ✅ Registered NaiveWidget.');
 
-    ctx.hooks.on('language-change', lang => {
-      console.log(`[ExamplePlugin] Language switched to: ${lang}`);
-    });
 
-    // ==========================================
-    // 2. INJECT UI COMPONENTS
-    // ==========================================
-    // Inject a floating panel into the canvas area
-    ctx.api.editor.registerOverlay({ component: ExampleOverlay });
+    // 2. Register the Universal Property Panel Overlay
+    // This panel will show up on the right when any 'N...' component is selected
+    ctx.api.editor.registerOverlay({ component: NaivePropertyPanel, show: () => true });
 
-    // ==========================================
-    // 3. REGISTER TOOLBAR ACTIONS
-    // ==========================================
+    // 3. Register a Toolbar Item to quickly add a test Naive UI Button
     ctx.api.editor.registerToolbarItem({
-      id: 'plugin-btn-add-rect',
-      icon: '⭐', // You can use emoji or SVG HTML strings here
-      label: 'test button!',
-      tooltip: 'Example: Add Golden Rect',
+      id: 'plugin-btn-add-naive-button',
+      icon: '🟢',
+      label: 'NButton',
+      tooltip: 'Add Naive UI Button',
       position: 'right',
       onClick: () => {
-        // Use context API to mutate the canvas safely
+        const id = `NButton_${Date.now()}`;
         ctx.api.elements.add({
-          id: `rect_${Date.now()}`,
-          type: 'TextElement',
+          id,
+          type: 'NButton',
           x: 100,
           y: 100,
-          width: 200,
-          height: 100,
+          width: 120,
+          height: 40,
           props: {
-            text: 'I am from Plugin!',
-            style: 'background-color: #ffcc00; border: 2px solid #333; border-radius: 8px;',
+            type: 'primary'
+          },
+          slots: {
+            default: 'Primary Button'
           }
         });
-        alert('Added a Golden Rectangle to the canvas via Plugin API!');
       },
     });
 
-    // ==========================================
-    // 4. CONTEXT MENU ACTIONS
-    // ==========================================
-    ctx.api.editor.registerContextMenuItem({
-      id: 'plugin-ctx-log',
-      label: 'Print Info to Console',
-      icon: '🖨️',
-      show: menuCtx => {
-        // Only show if user has selected at least 1 element
-        return menuCtx.selectedIds.length > 0;
-      },
-      onClick: menuCtx => {
-        console.log('[ExamplePlugin] Printing selected element IDs:', menuCtx.selectedIds);
+    // Add a test Card
+    ctx.api.editor.registerToolbarItem({
+      id: 'plugin-btn-add-naive-card',
+      icon: '🗂️',
+      label: 'NCard',
+      tooltip: 'Add Naive UI Card',
+      position: 'right',
+      onClick: () => {
+        const id = `NCard_${Date.now()}`;
+        ctx.api.elements.add({
+          id,
+          type: 'NaiveWidget',
+          x: 150,
+          y: 150,
+          width: 300,
+          height: 200,
+          props: {
+            naiveType: 'NCard',
+            title: 'Naive Card',
+            hoverable: true
+          },
+          slots: {
+            default: 'This is the card body content. You can add more HTML here.',
+            header: 'Card Header Slot',
+            footer: 'Card Footer Slot'
+          }
+        });
       },
     });
   },
 
   destroy() {
-    console.log('[ExamplePlugin] 🛑 Plugin Destroyed and cleaned up.');
+    console.log('[NaiveUIPlugin] 🛑 Plugin Destroyed.');
   },
 };
+
+// Export the plugin as default as well
+export default NaiveUIPlugin;

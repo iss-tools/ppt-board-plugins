@@ -1,12 +1,14 @@
 import { defineConfig } from 'vite';
-import UnoCSS from 'unocss/vite';
 import vue from '@vitejs/plugin-vue';
+import UnoCSS from 'unocss/vite';
+import path from 'path';
+
 export default defineConfig({
-  server: {
-    host: true,
-  },
   plugins: [
-    UnoCSS(),
-    vue()
-  ]
+    vue(),
+    UnoCSS()
+  ],
+  resolve: {
+    dedupe: ['vue', '@iss-ai/ppt-board']
+  }
 });
