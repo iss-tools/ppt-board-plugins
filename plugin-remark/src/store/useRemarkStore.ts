@@ -5,9 +5,11 @@ export interface Comment {
   id: string;
   userId: string;
   userName: string;
-  userAvatar: string;
+  userAvatar?: string;
   content: string;
   timestamp: number;
+  style?: 'bold' | 'strikethrough' | 'none';
+  color?: string;
 }
 
 export interface RemarkThread {
@@ -136,14 +138,35 @@ export function useRemarkStore(ctx: CanvasPluginContext | null = null) {
     saveElementRemarks(targetId, newRemarks);
   };
 
+  const updateComment = (targetId: string, threadId: string, commentId: string, partial: Partial<Comment>) => {
+    const threads = getElementRemarks({ id: targetId } as CanvasElementData);
+    const threadIndex = threads.findIndex(t => t.id === threadId);
+    if (threadIndex === -1) return;
+
+    const thread = threads[threadIndex];
+    const commentIndex = thread.comments.findIndex(c => c.id === commentId);
+    if (commentIndex === -1) return;
+
+    const updatedComment = { ...thread.comments[commentIndex], ...partial };
+    const newComments = [...thread.comments];
+    newComments[commentIndex] = updatedComment;
+    
+    const newRemarks = [...threads];
+    newRemarks[threadIndex] = { ...thread, comments: newComments };
+    
+    saveElementRemarks(targetId, newRemarks);
+  };
+
   return {
     showRemarks,
     toggleShowRemarks,
+    getAllRemarks,
     getElementRemarks,
     addRemarkThread,
     addReply,
     resolveThread,
     deleteComment,
+    updateComment,
     readThreadIds,
     markAsRead,
     markAllAsRead,

@@ -18,33 +18,20 @@
       </div>
 
       <!-- Filter/Actions Bar -->
-      <div class="excal-actions-bar">
-        <div class="sort-dropdown-container">
-          <button class="icon-btn" @click="showSortDropdown = !showSortDropdown">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
-          </button>
+      <div class="excal-actions-bar filter-bar">
+        <span class="filter-label">Filter:</span>
+        <div class="colors-row filter-colors">
+          <button class="color-btn" :class="{ active: filterColor === '#fee2e2' }" style="background-color: #fee2e2" title="Urgent" @click="toggleFilter('#fee2e2')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#ffedd5' }" style="background-color: #ffedd5" title="High" @click="toggleFilter('#ffedd5')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#fef9c3' }" style="background-color: #fef9c3" title="Medium" @click="toggleFilter('#fef9c3')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#dcfce7' }" style="background-color: #dcfce7" title="Low" @click="toggleFilter('#dcfce7')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#dbeafe' }" style="background-color: #dbeafe" title="Info" @click="toggleFilter('#dbeafe')"></button>
+          <div class="filter-divider"></div>
           
-          <!-- Dropdown -->
-          <div class="sort-dropdown" v-if="showSortDropdown" @click.stop>
-            <div class="dropdown-item" @click="sortBy = 'date'; showSortDropdown = false">
-              <span class="icon">↑↓</span> Sort by date
-              <span v-if="sortBy === 'date'" class="check">✓</span>
-            </div>
-            <div class="dropdown-item" @click="sortBy = 'unread'; showSortDropdown = false">
-              <span class="icon">↑↓</span> Sort by unread
-              <span v-if="sortBy === 'unread'" class="check">✓</span>
-            </div>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item toggle-item" @click="showResolved = !showResolved">
-              <span>Show resolved comments</span>
-              <div class="toggle-switch" :class="{ on: showResolved }"><div class="knob"></div></div>
-            </div>
-          </div>
+          <button class="style-btn" :class="{ active: filterStyle === 'bold' }" title="Bold" @click="toggleStyleFilter('bold')"><b>B</b></button>
+          <button class="style-btn" :class="{ active: filterStyle === 'strikethrough' }" title="Strikethrough" @click="toggleStyleFilter('strikethrough')"><s>S</s></button>
         </div>
-
-        <button class="text-btn" @click="markAllAsRead">
-          <span class="check-icon">✓</span> Mark all as read
-        </button>
+        <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyle" @click="clearFilters">Clear</button>
       </div>
 
       <!-- Global Canvas Remark Input -->
@@ -83,25 +70,43 @@
               <strong>{{ item.initiator.userName }}</strong>
               <span class="badge" v-if="item.element.id === '__canvas_global__'">Canvas</span>
               <span class="badge component-badge" v-else>{{ item.element.type }}</span>
-              <span class="dot">•</span>
-              <span class="time">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
-              <button 
-                v-if="item.initiator.userId === currentUser?.userId"
-                class="delete-btn initiator-delete" 
-                @click.stop="handleDelete(item.element.id, item.thread.id, item.initiator.id)"
-                title="Delete thread"
-              >
-                🗑️
-              </button>
+              <div class="meta-right">
+                <span class="time">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
+                <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(item.initiator.id)">
+                  <button class="more-btn" title="More Options">⋮</button>
+                  <div class="more-actions-menu" v-show="activeMenuId === item.initiator.id" @click.stop>
+                    <div class="colors-row">
+                      <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fee2e2'})"></button>
+                      <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#ffedd5'})"></button>
+                      <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fef9c3'})"></button>
+                      <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dcfce7'})"></button>
+                      <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dbeafe'})"></button>
+                      <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: undefined})">✖</button>
+                    </div>
+                    <div class="styles-row">
+                      <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {style: 'bold'})"><b>B</b></button>
+                      <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {style: 'strikethrough'})"><s>S</s></button>
+                      <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {style: 'none'})">Clear</button>
+                    </div>
+                    <button 
+                      v-if="item.initiator.userId === currentUser?.userId"
+                      class="action-btn delete-text-btn" 
+                      @click.stop="handleDelete(item.element.id, item.thread.id, item.initiator.id)"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
-          <div class="initiator-content">
+          <div class="initiator-content" :class="item.initiator.style" :style="{ backgroundColor: item.initiator.color }">
             {{ item.initiator.content }}
           </div>
 
-          <!-- Footer: Participants and Replies (Hide if expanded) -->
-          <div class="thread-footer" v-if="expandedThreadId !== item.thread.id">
+          <!-- Footer: Participants and Replies (Hide if expanded or no replies) -->
+          <div class="thread-footer" v-if="expandedThreadId !== item.thread.id && item.replyCount > 0">
             <div class="participants">
               <AvatarIcon 
                 v-for="user in item.participants.slice(0, 3)" 
@@ -136,17 +141,34 @@
                     <strong>{{ comment.userName }}</strong>
                     <div class="meta-right">
                       <span class="time">{{ formatRelativeTime(comment.timestamp) }}</span>
-                      <button 
-                        v-if="comment.userId === currentUser?.userId"
-                        class="delete-btn" 
-                        @click.stop="handleDelete(item.element.id, item.thread.id, comment.id)"
-                        title="Delete reply"
-                      >
-                        🗑️
-                      </button>
+                      <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(comment.id)">
+                        <button class="more-btn" title="More Options">⋮</button>
+                        <div class="more-actions-menu" v-show="activeMenuId === comment.id" @click.stop>
+                          <div class="colors-row">
+                            <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fee2e2'})"></button>
+                            <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#ffedd5'})"></button>
+                            <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fef9c3'})"></button>
+                            <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dcfce7'})"></button>
+                            <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dbeafe'})"></button>
+                            <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: undefined})">✖</button>
+                          </div>
+                          <div class="styles-row">
+                            <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {style: 'bold'})"><b>B</b></button>
+                            <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {style: 'strikethrough'})"><s>S</s></button>
+                            <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {style: 'none'})">Clear</button>
+                          </div>
+                          <button 
+                            v-if="comment.userId === currentUser?.userId"
+                            class="action-btn delete-text-btn" 
+                            @click.stop="handleDelete(item.element.id, item.thread.id, comment.id)"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div class="reply-text">{{ comment.content }}</div>
+                  <div class="reply-text" :class="comment.style" :style="{ backgroundColor: comment.color }">{{ comment.content }}</div>
                 </div>
               </div>
             </div>
@@ -170,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useCanvasContext, CanvasElementData } from '@iss-ai/ppt-board';
 import { useRemarkStore, Comment, RemarkThread } from '../store/useRemarkStore';
 import { useRemarkUser } from '../composables/useRemarkUser';
@@ -180,7 +202,7 @@ const ctx = useCanvasContext();
 const { state } = ctx;
 const remarkStore = useRemarkStore(ctx as any);
 const { 
-  showRemarks, getElementRemarks, addReply, addRemarkThread, deleteComment, 
+  showRemarks, getElementRemarks, getAllRemarks, addReply, addRemarkThread, deleteComment, updateComment,
   readThreadIds, markAsRead, markAllAsRead 
 } = remarkStore;
 const { currentUser } = useRemarkUser();
@@ -193,8 +215,40 @@ const globalRemarkText = ref('');
 // Sidebar State
 const searchQuery = ref('');
 const showSortDropdown = ref(false);
-const sortBy = ref<'date' | 'unread'>('date');
+const activeMenuId = ref<string | null>(null);
+const filterColor = ref<string | null>(null);
+const filterStyle = ref<string | null>(null);
 const showResolved = ref(false);
+
+const toggleFilter = (color: string) => {
+  filterColor.value = filterColor.value === color ? null : color;
+};
+
+const toggleStyleFilter = (style: string) => {
+  filterStyle.value = filterStyle.value === style ? null : style;
+};
+
+const clearFilters = () => {
+  filterColor.value = null;
+  filterStyle.value = null;
+};
+
+const toggleMoreMenu = (id: string) => {
+  activeMenuId.value = activeMenuId.value === id ? null : id;
+};
+
+const handleGlobalClick = () => {
+  activeMenuId.value = null;
+  showSortDropdown.value = false;
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleGlobalClick);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleGlobalClick);
+});
 
 // Open sidebar when selection changes (if not force closed)
 ctx.hooks.on('selection:change', () => {
@@ -228,32 +282,23 @@ const closeSidebar = () => {
 
 // Unified Flat List of Threads
 const allCanvasThreads = computed(() => {
-  const elements = state.runtime.activeElements || [];
   const list: Array<{ element: CanvasElementData, thread: RemarkThread, initiator: Comment, participants: any[], replyCount: number }> = [];
+  const all = getAllRemarks();
   
-  // Add global canvas remarks
-  const globalElement = { id: '__canvas_global__', type: 'canvas' } as CanvasElementData;
-  const globalThreads = getElementRemarks(globalElement);
-  globalThreads.forEach(thread => {
-    if (thread.comments.length === 0) return;
-    if (!showResolved.value && thread.resolved) return;
+  Object.entries(all).forEach(([targetId, threads]) => {
+    let element: CanvasElementData;
+    if (targetId === '__canvas_global__') {
+      element = { id: '__canvas_global__', type: 'canvas' } as CanvasElementData;
+    } else {
+      const ids = targetId.split(',');
+      if (ids.length > 1) {
+        element = { id: targetId, type: `Multiple (${ids.length})` } as CanvasElementData;
+      } else {
+        const found = state.runtime.activeElements.find(e => e.id === targetId);
+        element = found ? { id: targetId, type: found.type } as CanvasElementData : { id: targetId, type: 'Element' } as CanvasElementData;
+      }
+    }
     
-    const initiator = thread.comments[0];
-    const replyCount = thread.comments.length - 1;
-    
-    const seen = new Set();
-    const participants = thread.comments.filter(c => {
-      if (seen.has(c.userId)) return false;
-      seen.add(c.userId);
-      return true;
-    });
-
-    list.push({ element: globalElement, thread, initiator, participants, replyCount });
-  });
-
-  // Add element remarks
-  elements.forEach(element => {
-    const threads = getElementRemarks(element);
     threads.forEach(thread => {
       if (thread.comments.length === 0) return;
       if (!showResolved.value && thread.resolved) return;
@@ -271,6 +316,7 @@ const allCanvasThreads = computed(() => {
       list.push({ element, thread, initiator, participants, replyCount });
     });
   });
+  
   return list;
 });
 
@@ -279,7 +325,12 @@ const filteredThreads = computed(() => {
   let list = allCanvasThreads.value;
 
   if (state.runtime.selectedIds.size > 0) {
-    list = list.filter(item => item.element.id === '__canvas_global__' || state.runtime.selectedIds.has(item.element.id));
+    const selectedArray = Array.from(state.runtime.selectedIds);
+    list = list.filter(item => {
+      if (item.element.id === '__canvas_global__') return true;
+      const ids = item.element.id.split(',');
+      return ids.some(id => selectedArray.includes(id));
+    });
   }
 
   if (searchQuery.value.trim()) {
@@ -292,6 +343,18 @@ const filteredThreads = computed(() => {
     });
   }
 
+  if (filterColor.value) {
+    list = list.filter(item => {
+      return item.thread.comments.some(c => c.color === filterColor.value);
+    });
+  }
+
+  if (filterStyle.value) {
+    list = list.filter(item => {
+      return item.thread.comments.some(c => c.style === filterStyle.value);
+    });
+  }
+
   list = list.sort((a, b) => {
     // Pin Canvas remarks to the top
     const aIsCanvas = a.element.id === '__canvas_global__';
@@ -299,13 +362,7 @@ const filteredThreads = computed(() => {
     if (aIsCanvas && !bIsCanvas) return -1;
     if (!aIsCanvas && bIsCanvas) return 1;
 
-    if (sortBy.value === 'unread') {
-      const aUnread = !readThreadIds.value.has(a.thread.id);
-      const bUnread = !readThreadIds.value.has(b.thread.id);
-      if (aUnread && !bUnread) return -1;
-      if (!aUnread && bUnread) return 1;
-    }
-    // Fallback or default sort by date (newest first)
+    // Default sort by date (newest first)
     return b.initiator.timestamp - a.initiator.timestamp;
   });
 
@@ -315,7 +372,8 @@ const filteredThreads = computed(() => {
 const selectAndOpenThread = (elementId: string, threadId: string) => {
   markAsRead(threadId);
   if (elementId !== '__canvas_global__') {
-    ctx.selection?.setSelection([elementId]);
+    const ids = elementId.split(',');
+    ctx.selection?.setSelection(ids);
   }
   
   if (expandedThreadId.value === threadId) {
@@ -324,16 +382,6 @@ const selectAndOpenThread = (elementId: string, threadId: string) => {
     expandedThreadId.value = threadId; // Expand
   }
   forceClosedSidebar.value = false;
-};
-
-const getUniqueUsers = (threads: RemarkThread[]) => {
-  const all = threads.flatMap(t => t.comments);
-  const seen = new Set();
-  return all.filter(c => {
-    if (seen.has(c.userId)) return false;
-    seen.add(c.userId);
-    return true;
-  }).slice(0, 5); // Show max 5 avatars in stack
 };
 
 const remarkPlaceholder = computed(() => {
@@ -376,12 +424,11 @@ const handleGlobalReply = () => {
 
   const selectedIds = Array.from(state.runtime.selectedIds);
   if (selectedIds.length > 0) {
-    // Add remark to the primary selected component
-    const elementId = selectedIds[0];
-    const element = state.runtime.activeElements.find(e => e.id === elementId);
-    if (element) {
-      addRemarkThread(element.id, element, comment);
-    }
+    // Add remark to the selected components
+    const targetId = selectedIds.join(',');
+    const typeStr = selectedIds.length > 1 ? `Multiple (${selectedIds.length})` : state.runtime.activeElements.find(e => e.id === selectedIds[0])?.type || 'Element';
+    const element = { id: targetId, type: typeStr } as CanvasElementData;
+    addRemarkThread(targetId, element, comment);
   } else {
     // Add to global canvas
     const element = { id: '__canvas_global__', type: 'canvas' } as CanvasElementData;
@@ -391,10 +438,17 @@ const handleGlobalReply = () => {
   globalRemarkText.value = '';
 };
 
-const handleDelete = (elementId: string, threadId: string, commentId: string) => {
-  deleteComment(elementId, threadId, commentId);
+const handleDelete = (targetId: string, threadId: string, commentId: string) => {
+  deleteComment(targetId, threadId, commentId);
+  activeMenuId.value = null;
 };
 
+const handleUpdateStyle = (targetId: string, threadId: string, commentId: string, partial: Partial<Comment>) => {
+  updateComment(targetId, threadId, commentId, partial);
+  activeMenuId.value = null;
+};
+
+// Utilities
 const formatRelativeTime = (ts: number) => {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60000);
@@ -594,11 +648,12 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .initiator-meta {
-  font-size: 12px; color: #4b5563; display: flex; align-items: center;
+  display: flex; align-items: center; font-size: 11px; color: #4b5563; margin-bottom: 4px; flex: 1;
 }
 .initiator-meta strong { color: #111827; font-weight: 600; }
 .initiator-meta .dot { margin: 0 4px; color: #9ca3af; }
 .initiator-meta .time { color: #6b7280; font-size: 11px; }
+.initiator-meta .meta-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
 .initiator-delete {
   margin-left: auto;
@@ -718,6 +773,146 @@ const formatRelativeTime = (ts: number) => {
   cursor: pointer;
   font-size: 11px;
   font-weight: 500;
+}
+
+/* Comment styling */
+.initiator-content.bold, .reply-text.bold {
+  font-weight: bold;
+}
+.initiator-content.strikethrough, .reply-text.strikethrough {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.initiator-content, .reply-text {
+  padding: 4px;
+  border-radius: 4px;
+}
+
+/* More Actions Menu */
+.more-actions-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.more-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1;
+}
+.more-btn:hover {
+  color: #111827;
+}
+.more-actions-menu {
+  display: flex;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  z-index: 100;
+  padding: 8px;
+  min-width: 150px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colors-row {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+}
+.color-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.color-btn.active {
+  border-color: #4b5563;
+  transform: scale(1.1);
+}
+.filter-bar {
+  justify-content: flex-start;
+  gap: 12px;
+}
+.filter-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+.clear-filter-btn {
+  margin-left: auto;
+  font-size: 12px;
+  color: #6b7280;
+}
+.clear-filter-btn:hover {
+  color: #ef4444;
+}
+.filter-divider {
+  width: 1px; height: 16px; background: #e5e7eb; margin: 0 4px;
+}
+.filter-colors {
+  display: flex;
+  align-items: center;
+}
+.filter-colors .style-btn {
+  width: 20px; height: 20px; padding: 0; border: none; background: transparent;
+  color: #6b7280; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; cursor: pointer; flex: none;
+}
+.filter-colors .style-btn:hover { background: #f3f4f6; color: #111827; }
+.filter-colors .style-btn.active { background: #e5e7eb; color: #111827; }
+.color-btn.clear {
+  background: white;
+  color: #9ca3af;
+  font-size: 10px;
+}
+.color-btn:hover {
+  transform: scale(1.1);
+}
+
+.styles-row {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+}
+.style-btn {
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+}
+.style-btn:hover {
+  background: #f3f4f6;
+}
+
+.action-btn.delete-text-btn {
+  width: 100%;
+  text-align: left;
+  padding: 6px;
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.action-btn.delete-text-btn:hover {
+  background: #fef2f2;
 }
 
 </style>
