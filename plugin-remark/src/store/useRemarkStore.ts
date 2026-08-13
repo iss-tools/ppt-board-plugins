@@ -23,6 +23,20 @@ export function useRemarkStore(ctx: CanvasPluginContext | null = null) {
   
   const showRemarks = computed(() => ctx?.state?.editor?.showRemarks ?? true);
 
+  // Local state for unread tracking
+  const readThreadIds = ref<Set<string>>(new Set());
+
+  const markAsRead = (threadId: string) => {
+    readThreadIds.value.add(threadId);
+  };
+
+  const markAllAsRead = () => {
+    const all = getAllRemarks();
+    Object.values(all).forEach(threads => {
+      threads.forEach(t => readThreadIds.value.add(t.id));
+    });
+  };
+
   const toggleShowRemarks = () => {
     if (ctx) {
       ctx.hooks.emit('params-change' as any, { showRemarks: !showRemarks.value });
@@ -102,6 +116,26 @@ export function useRemarkStore(ctx: CanvasPluginContext | null = null) {
     saveElementRemarks(targetId, newRemarks);
   };
 
+  const deleteComment = (targetId: string, threadId: string, commentId: string) => {
+    // Note: Since element is needed for getElementRemarks, we mock it or pass element. 
+    // Wait, getElementRemarks uses element.id, so we can just pass { id: targetId } as CanvasElementData
+    const threads = getElementRemarks({ id: targetId } as CanvasElementData);
+    const threadIndex = threads.findIndex(t => t.id === threadId);
+    if (threadIndex === -1) return;
+
+    const thread = threads[threadIndex];
+    const newComments = thread.comments.filter(c => c.id !== commentId);
+    
+    const newRemarks = [...threads];
+    if (newComments.length === 0) {
+      newRemarks.splice(threadIndex, 1);
+    } else {
+      newRemarks[threadIndex] = { ...thread, comments: newComments };
+    }
+    
+    saveElementRemarks(targetId, newRemarks);
+  };
+
   return {
     showRemarks,
     toggleShowRemarks,
@@ -109,5 +143,9 @@ export function useRemarkStore(ctx: CanvasPluginContext | null = null) {
     addRemarkThread,
     addReply,
     resolveThread,
+    deleteComment,
+    readThreadIds,
+    markAsRead,
+    markAllAsRead,
   };
 }

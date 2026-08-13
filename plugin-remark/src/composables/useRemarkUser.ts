@@ -14,7 +14,7 @@ const nouns = ['Cat', 'Dog', 'Fox', 'Bear', 'Lion', 'Tiger', 'Wolf', 'Eagle', 'S
 function generateRandomUser(): RemarkUser {
   const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-  const randomId = Math.floor(Math.random() * 100) + 1;
+  const randomId = Math.floor(Math.random() * 50) + 1;
 
   return {
     userId: `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
