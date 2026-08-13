@@ -58,7 +58,7 @@ export function useRemarkStore(ctx: CanvasPluginContext | null = null) {
 
   const saveElementRemarks = (targetId: string, threads: RemarkThread[]) => {
     if (!ctx) return;
-    const allRemarks = getAllRemarks();
+    const allRemarks = { ...getAllRemarks() };
     allRemarks[targetId] = threads;
     
     if (!ctx.state.document.pluginDatas) {

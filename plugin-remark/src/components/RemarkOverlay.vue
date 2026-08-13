@@ -1,81 +1,6 @@
 <template>
   <div class="plugin-remark-overlay" v-if="showRemarks">
     
-    <!-- Canvas Indicators -->
-    <template v-for="item in activeElementsWithRemarks" :key="item.element.id">
-      <!-- Glowing Border Highlight -->
-      <div 
-        class="remark-element-highlight"
-        :style="getHighlightStyle(item.element)"
-      ></div>
-
-      <!-- Container for Avatar Stack and Local Panel -->
-      <div 
-        class="remark-cluster-container"
-        :style="getClusterStyle(item.element)"
-        @click.stop
-      >
-        <div class="avatar-stack" @click="toggleElementPanel(item.element.id)">
-          <AvatarIcon 
-            v-for="user in getUniqueUsers(item.threads)" 
-            :key="user.userId"
-            :src="user.userAvatar" 
-            :name="user.userName"
-            :userId="user.userId"
-            class="avatar-item"
-          />
-        </div>
-
-        <!-- The Popover Panel -->
-        <div v-if="activeElementId === item.element.id" class="thread-panel">
-          <div class="thread-header">
-            <span>Remarks</span>
-            <button class="close-btn" @click="activeElementId = null">×</button>
-          </div>
-          
-          <div class="comments-list">
-            <template v-for="thread in item.threads" :key="thread.id">
-              <div v-for="comment in thread.comments" :key="comment.id" class="comment-item">
-                <AvatarIcon 
-                  :src="comment.userAvatar" 
-                  :name="comment.userName"
-                  :userId="comment.userId"
-                  class="comment-avatar" 
-                />
-                <div class="comment-body">
-                  <div class="comment-meta">
-                    <strong>{{ comment.userName }}</strong>
-                    <div class="meta-right">
-                      <span class="time">{{ formatRelativeTime(comment.timestamp) }}</span>
-                      <button 
-                        v-if="comment.userId === currentUser?.userId"
-                        class="delete-btn" 
-                        @click="handleDelete(item.element.id, thread.id, comment.id)"
-                        title="Delete remark"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                  <div class="comment-text">{{ comment.content }}</div>
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <div class="reply-box">
-            <input 
-              :value="replyTexts[item.element.id] || ''" 
-              @input="e => replyTexts[item.element.id] = (e.target as HTMLInputElement).value"
-              placeholder="Type a remark..." 
-              @keyup.enter="handleElementReply(item.element)"
-            />
-            <button @click="handleElementReply(item.element)">Send</button>
-          </div>
-        </div>
-      </div>
-    </template>
-
     <!-- Global Right Sidebar -->
     <div class="excal-sidebar" v-if="showSidebar">
       <!-- Search Header -->
@@ -126,7 +51,7 @@
       <div class="global-remark-input">
         <input 
           type="text" 
-          placeholder="Add a remark for the entire canvas..." 
+          :placeholder="remarkPlaceholder" 
           v-model="globalRemarkText"
           @keyup.enter="handleGlobalReply"
         />
@@ -143,7 +68,7 @@
           v-for="item in filteredThreads" 
           :key="item.thread.id"
           class="excal-thread-card"
-          :class="{ unread: !readThreadIds.has(item.thread.id) }"
+          :class="{ unread: !readThreadIds.has(item.thread.id), expanded: expandedThreadId === item.thread.id }"
           @click="selectAndOpenThread(item.element.id, item.thread.id)"
         >
           <!-- Initiator Comment -->
@@ -160,6 +85,14 @@
               <span class="badge component-badge" v-else>{{ item.element.type }}</span>
               <span class="dot">•</span>
               <span class="time">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
+              <button 
+                v-if="item.initiator.userId === currentUser?.userId"
+                class="delete-btn initiator-delete" 
+                @click.stop="handleDelete(item.element.id, item.thread.id, item.initiator.id)"
+                title="Delete thread"
+              >
+                🗑️
+              </button>
             </div>
           </div>
           
@@ -167,8 +100,8 @@
             {{ item.initiator.content }}
           </div>
 
-          <!-- Footer: Participants and Replies -->
-          <div class="thread-footer">
+          <!-- Footer: Participants and Replies (Hide if expanded) -->
+          <div class="thread-footer" v-if="expandedThreadId !== item.thread.id">
             <div class="participants">
               <AvatarIcon 
                 v-for="user in item.participants.slice(0, 3)" 
@@ -185,6 +118,50 @@
             <div class="replies-count" v-if="item.replyCount > 0">
               {{ item.replyCount }} replies
             </div>
+          </div>
+
+          <!-- Expanded Thread Content (Inline Replies) -->
+          <div v-if="expandedThreadId === item.thread.id" class="expanded-thread-content" @click.stop>
+            
+            <div class="inline-replies-list" v-if="item.thread.comments.length > 1">
+              <div v-for="comment in item.thread.comments.slice(1)" :key="comment.id" class="inline-reply-item">
+                <AvatarIcon 
+                  :src="comment.userAvatar" 
+                  :name="comment.userName"
+                  :userId="comment.userId"
+                  class="reply-avatar" 
+                />
+                <div class="reply-body">
+                  <div class="reply-meta">
+                    <strong>{{ comment.userName }}</strong>
+                    <div class="meta-right">
+                      <span class="time">{{ formatRelativeTime(comment.timestamp) }}</span>
+                      <button 
+                        v-if="comment.userId === currentUser?.userId"
+                        class="delete-btn" 
+                        @click.stop="handleDelete(item.element.id, item.thread.id, comment.id)"
+                        title="Delete reply"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  <div class="reply-text">{{ comment.content }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reply Input -->
+            <div class="inline-reply-box">
+              <input 
+                :value="replyTexts[item.thread.id] || ''" 
+                @input="e => replyTexts[item.thread.id] = (e.target as HTMLInputElement).value"
+                placeholder="Type a reply..." 
+                @keyup.enter="handleInlineReply(item.element, item.thread.id)"
+              />
+              <button @click.stop="handleInlineReply(item.element, item.thread.id)">Reply</button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -209,7 +186,7 @@ const {
 const { currentUser } = useRemarkUser();
 
 const forceClosedSidebar = ref(false);
-const activeElementId = ref<string | null>(null);
+const expandedThreadId = ref<string | null>(null);
 const replyTexts = ref<Record<string, string>>({});
 const globalRemarkText = ref('');
 
@@ -234,16 +211,8 @@ watch(() => showRemarks.value, (newVal) => {
   }
 });
 
-const toggleElementPanel = (elementId: string) => {
-  if (activeElementId.value === elementId) {
-    activeElementId.value = null;
-  } else {
-    activeElementId.value = elementId;
-    // Mark all threads for this element as read when opening local panel
-    const threads = getElementRemarks({ id: elementId } as any);
-    threads.forEach(t => markAsRead(t.id));
-  }
-};
+// Removed toggleElementPanel since local popovers are gone
+
 
 const showSidebar = computed(() => {
   if (!showRemarks.value) return false;
@@ -254,14 +223,8 @@ const closeSidebar = () => {
   forceClosedSidebar.value = true;
 };
 
-// Canvas Indicators: Elements that have remarks
-const activeElementsWithRemarks = computed(() => {
-  const elements = state.runtime.activeElements || [];
-  return elements.map(element => {
-    const threads = getElementRemarks(element).filter(t => !t.resolved);
-    return { element, threads };
-  }).filter(item => item.threads.length > 0);
-});
+// We no longer need activeElementsWithRemarks for canvas indicators
+
 
 // Unified Flat List of Threads
 const allCanvasThreads = computed(() => {
@@ -315,6 +278,10 @@ const allCanvasThreads = computed(() => {
 const filteredThreads = computed(() => {
   let list = allCanvasThreads.value;
 
+  if (state.runtime.selectedIds.size > 0) {
+    list = list.filter(item => item.element.id === '__canvas_global__' || state.runtime.selectedIds.has(item.element.id));
+  }
+
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase();
     list = list.filter(item => {
@@ -326,6 +293,12 @@ const filteredThreads = computed(() => {
   }
 
   list = list.sort((a, b) => {
+    // Pin Canvas remarks to the top
+    const aIsCanvas = a.element.id === '__canvas_global__';
+    const bIsCanvas = b.element.id === '__canvas_global__';
+    if (aIsCanvas && !bIsCanvas) return -1;
+    if (!aIsCanvas && bIsCanvas) return 1;
+
     if (sortBy.value === 'unread') {
       const aUnread = !readThreadIds.value.has(a.thread.id);
       const bUnread = !readThreadIds.value.has(b.thread.id);
@@ -343,7 +316,12 @@ const selectAndOpenThread = (elementId: string, threadId: string) => {
   markAsRead(threadId);
   if (elementId !== '__canvas_global__') {
     ctx.selection?.setSelection([elementId]);
-    activeElementId.value = elementId; // open local popover
+  }
+  
+  if (expandedThreadId.value === threadId) {
+    expandedThreadId.value = null; // Toggle collapse
+  } else {
+    expandedThreadId.value = threadId; // Expand
   }
   forceClosedSidebar.value = false;
 };
@@ -358,39 +336,15 @@ const getUniqueUsers = (threads: RemarkThread[]) => {
   }).slice(0, 5); // Show max 5 avatars in stack
 };
 
-const getHighlightStyle = (element: CanvasElementData) => {
-  const { scale, offsetX, offsetY } = state.runtime;
-  const left = element.x * scale + offsetX;
-  const top = element.y * scale + offsetY;
-  const w = (element.width || 0) * scale;
-  const h = (element.height || 0) * scale;
-  return {
-    left: `${left - 4}px`,
-    top: `${top - 4}px`,
-    width: `${w + 8}px`,
-    height: `${h + 8}px`,
-    position: 'absolute' as const,
-    border: '2px solid rgba(99, 102, 241, 0.6)',
-    boxShadow: '0 0 10px rgba(99, 102, 241, 0.4)',
-    borderRadius: '6px',
-    pointerEvents: 'none' as const,
-    transition: 'all 0.2s',
-  };
-};
+const remarkPlaceholder = computed(() => {
+  if (state.runtime.selectedIds.size > 0) {
+    return "Add a component remark...";
+  }
+  return "Add a canvas remark...";
+});
 
-const getClusterStyle = (element: CanvasElementData) => {
-  const { scale, offsetX, offsetY } = state.runtime;
-  const left = (element.x + (element.width || 0)) * scale + offsetX;
-  const top = element.y * scale + offsetY;
-  return {
-    left: `${left}px`,
-    top: `${top}px`,
-    position: 'absolute' as const,
-  };
-};
-
-const handleElementReply = (element: CanvasElementData) => {
-  const text = replyTexts.value[element.id];
+const handleInlineReply = (element: CanvasElementData, threadId: string) => {
+  const text = replyTexts.value[threadId];
   if (!text || !text.trim() || !currentUser.value) return;
   
   const comment: Comment = {
@@ -402,20 +356,15 @@ const handleElementReply = (element: CanvasElementData) => {
     timestamp: Date.now()
   };
 
-  const threads = getElementRemarks(element).filter(t => !t.resolved);
-  if (threads.length > 0) {
-    addReply(element.id, element, threads[0].id, comment);
-    markAsRead(threads[0].id);
-  } else {
-    addRemarkThread(element.id, element, comment);
-  }
+  addReply(element.id, element, threadId, comment);
+  markAsRead(threadId);
 
-  replyTexts.value[element.id] = '';
+  replyTexts.value[threadId] = '';
 };
 
 const handleGlobalReply = () => {
   if (!globalRemarkText.value.trim() || !currentUser.value) return;
-  const element = { id: '__canvas_global__', type: 'canvas' } as CanvasElementData;
+  
   const comment: Comment = {
     id: `comment_${Date.now()}`,
     userId: currentUser.value.userId,
@@ -424,7 +373,21 @@ const handleGlobalReply = () => {
     content: globalRemarkText.value.trim(),
     timestamp: Date.now()
   };
-  addRemarkThread(element.id, element, comment);
+
+  const selectedIds = Array.from(state.runtime.selectedIds);
+  if (selectedIds.length > 0) {
+    // Add remark to the primary selected component
+    const elementId = selectedIds[0];
+    const element = state.runtime.activeElements.find(e => e.id === elementId);
+    if (element) {
+      addRemarkThread(element.id, element, comment);
+    }
+  } else {
+    // Add to global canvas
+    const element = { id: '__canvas_global__', type: 'canvas' } as CanvasElementData;
+    addRemarkThread(element.id, element, comment);
+  }
+  
   globalRemarkText.value = '';
 };
 
@@ -450,159 +413,6 @@ const formatRelativeTime = (ts: number) => {
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   z-index: 1000;
-}
-
-.remark-element-highlight {
-  z-index: 999;
-}
-
-.remark-cluster-container {
-  pointer-events: auto;
-  position: absolute;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-}
-
-.avatar-stack {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  transition: transform 0.2s;
-}
-
-.avatar-stack:hover {
-  transform: scale(1.1);
-}
-
-.avatar-item {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background-color: #f0f0f0;
-  margin-right: -10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  object-fit: cover;
-}
-
-/* Popover Panel Styles */
-.thread-panel {
-  position: absolute;
-  top: 36px;
-  left: 0;
-  width: 300px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  border: 1px solid #eee;
-  display: flex;
-  flex-direction: column;
-  color: #333;
-  z-index: 1001;
-  font-family: sans-serif;
-  cursor: default;
-}
-
-.thread-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #f0f0f0;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.close-btn {
-  background: none; border: none; font-size: 18px; cursor: pointer; color: #999;
-}
-.close-btn:hover { color: #333; }
-
-.comments-list {
-  max-height: 250px;
-  overflow-y: auto;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.comment-item {
-  display: flex;
-  gap: 8px;
-}
-
-.comment-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #eee;
-}
-
-.comment-body {
-  flex: 1;
-  background: #f9f9f9;
-  padding: 8px;
-  border-radius: 6px;
-  border-top-left-radius: 0;
-}
-
-.comment-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-  font-size: 12px;
-}
-.comment-meta strong { color: #333; }
-.meta-right { display: flex; align-items: center; gap: 8px; }
-.comment-meta .time { color: #999; font-size: 11px; }
-
-.delete-btn {
-  background: none; border: none; cursor: pointer; padding: 0;
-  font-size: 12px; opacity: 0.5; transition: opacity 0.2s;
-}
-.delete-btn:hover { opacity: 1; }
-
-.comment-text {
-  font-size: 13px;
-  line-height: 1.4;
-  color: #444;
-  word-break: break-word;
-}
-
-.reply-box {
-  display: flex;
-  padding: 12px;
-  border-top: 1px solid #eee;
-  gap: 8px;
-  background: #fafafa;
-}
-
-.reply-box input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  outline: none;
-  font-size: 13px;
-  transition: border-color 0.2s;
-}
-.reply-box input:focus {
-  border-color: #6366f1;
-}
-.reply-box button {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-.reply-box button:hover {
-  background: #4f46e5;
 }
 
 /* Excalidraw-like Global Sidebar */
@@ -790,6 +600,10 @@ const formatRelativeTime = (ts: number) => {
 .initiator-meta .dot { margin: 0 4px; color: #9ca3af; }
 .initiator-meta .time { color: #6b7280; font-size: 11px; }
 
+.initiator-delete {
+  margin-left: auto;
+}
+
 .badge {
   background: #e0e7ff;
   color: #4338ca;
@@ -831,4 +645,79 @@ const formatRelativeTime = (ts: number) => {
 .replies-count {
   font-size: 12px; color: #6b7280;
 }
+
+.expanded-thread-content {
+  margin-top: 12px;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 12px;
+}
+
+.inline-replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-left: 12px;
+  border-left: 2px solid #f3f4f6;
+}
+
+.inline-reply-item {
+  display: flex; gap: 8px;
+}
+
+.reply-avatar {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; border: 1px solid #e5e7eb;
+}
+
+.reply-body {
+  flex: 1;
+}
+
+.reply-meta {
+  display: flex; align-items: center; font-size: 11px; color: #4b5563; margin-bottom: 4px;
+}
+.reply-meta strong { color: #111827; margin-right: 6px; font-size: 12px; }
+.reply-meta .meta-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.reply-text {
+  font-size: 12px; color: #374151; line-height: 1.4; word-break: break-word;
+}
+
+.delete-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 12px; opacity: 0.5; transition: opacity 0.2s;
+}
+.delete-btn:hover { opacity: 1; }
+
+.inline-reply-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.inline-reply-box input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  outline: none;
+  font-size: 12px;
+  background: #f9fafb;
+}
+.inline-reply-box input:focus {
+  border-color: #6366f1;
+  background: #fff;
+}
+
+.inline-reply-box button {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+}
+
 </style>
