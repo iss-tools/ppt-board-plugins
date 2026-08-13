@@ -89,7 +89,30 @@
           <button class="style-btn" :class="{ active: filterStyles.includes('bold') }" title="Bold" @click="toggleStyleFilter('bold')"><b>B</b></button>
           <button class="style-btn" :class="{ active: filterStyles.includes('strikethrough') }" title="Strikethrough" @click="toggleStyleFilter('strikethrough')"><s>S</s></button>
         </div>
-        <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyles.length > 0" @click="clearFilters">Clear</button>
+        <div class="filter-actions-right" style="display: flex; gap: 8px; margin-left: auto; align-items: center;">
+          <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyles.length > 0" @click="clearFilters">Clear</button>
+          
+          <div class="sort-dropdown-container">
+            <button class="icon-btn" @click.stop="toggleViewMenu" title="View Options">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <div class="sort-dropdown" v-if="showViewMenu" @click.stop>
+              <div class="dropdown-item" @click="setViewMode('time-desc')">
+                <span class="icon">↓</span> Newest first
+                <svg v-if="viewMode === 'time-desc'" class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div class="dropdown-item" @click="setViewMode('time-asc')">
+                <span class="icon">↑</span> Oldest first
+                <svg v-if="viewMode === 'time-asc'" class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" @click="setViewMode('grouped')">
+                <span class="icon">⊞</span> Group by component
+                <svg v-if="viewMode === 'grouped'" class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Global Canvas Remark Input -->
@@ -104,146 +127,150 @@
       </div>
 
       <!-- Threads List -->
-      <div class="excal-threads-list" @click="showSortDropdown = false">
-        <div v-if="filteredThreads.length === 0" class="empty-state">
+      <div class="excal-threads-list" @click="showViewMenu = false">
+        <div v-if="displayList.length === 0" class="empty-state">
           No remarks found.
         </div>
 
-        <div 
-          v-for="item in filteredThreads" 
-          :key="item.thread.id"
-          class="excal-thread-card"
-          :class="{ unread: !readThreadIds.has(item.thread.id), expanded: expandedThreadId === item.thread.id }"
-          @click="selectAndOpenThread(item.element.id, item.thread.id)"
-        >
-          <!-- Initiator Comment -->
-          <div class="initiator-header">
-            <AvatarIcon 
-              :src="item.initiator.userAvatar" 
-              :name="item.initiator.userName"
-              :userId="item.initiator.userId"
-              class="initiator-avatar" 
-            />
-            <div class="initiator-meta">
-              <strong>{{ item.initiator.userName }}</strong>
-              <span class="badge" v-if="item.element.id === '__canvas_global__'">Canvas</span>
-              <span class="badge component-badge" v-else>{{ item.element.type }}</span>
-              <div class="meta-right">
-                <span class="time" :title="formatAbsoluteTime(item.initiator.timestamp)">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
-                <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(item.initiator.id)">
-                  <button class="more-btn" title="More Options">⋮</button>
-                  <div class="more-actions-menu" v-show="activeMenuId === item.initiator.id" @click.stop>
-                    <div class="colors-row">
-                      <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fee2e2'})"></button>
-                      <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#ffedd5'})"></button>
-                      <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fef9c3'})"></button>
-                      <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dcfce7'})"></button>
-                      <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dbeafe'})"></button>
-                      <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: undefined})">✖</button>
-                    </div>
-                    <div class="styles-row">
-                      <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'bold')"><b>B</b></button>
-                      <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'strikethrough')"><s>S</s></button>
-                      <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'none')">Clear</button>
-                    </div>
-                    <button 
-                      v-if="item.initiator.userId === currentUser?.userId"
-                      class="action-btn delete-text-btn" 
-                      @click.stop="handleDelete(item.element.id, item.thread.id, item.initiator.id)"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <template v-for="row in displayList" :key="row.type === 'header' ? row.id : row.item.thread.id">
+          <div v-if="row.type === 'header'" class="group-header">
+            {{ row.title }}
           </div>
-          
-          <div class="initiator-content" :class="item.initiator.style" :style="{ backgroundColor: item.initiator.color }">
-            {{ item.initiator.content }}
-          </div>
-
-          <!-- Footer: Participants and Replies (Hide if expanded or no replies) -->
-          <div class="thread-footer" v-if="expandedThreadId !== item.thread.id && item.replyCount > 0">
-            <div class="participants">
-              <AvatarIcon 
-                v-for="user in item.participants.slice(0, 3)" 
-                :key="user.userId"
-                :src="user.userAvatar" 
-                :name="user.userName"
-                :userId="user.userId"
-                class="participant-avatar"
-              />
-              <span v-if="item.participants.length > 3" class="more-users">
-                + {{ item.participants.length - 3 }} users
-              </span>
-            </div>
-            <div class="replies-count" v-if="item.replyCount > 0">
-              {{ item.replyCount }} replies
-            </div>
-          </div>
-
-          <!-- Expanded Thread Content (Inline Replies) -->
-          <div v-if="expandedThreadId === item.thread.id" class="expanded-thread-content" @click.stop>
-            
-            <div class="inline-replies-list" v-if="item.thread.comments.length > 1">
-              <div v-for="comment in item.thread.comments.slice(1)" :key="comment.id" class="inline-reply-item">
+          <template v-else v-for="item in [row.item]" :key="item.thread.id">
+            <div 
+              class="excal-thread-card"
+              :class="{ unread: !readThreadIds.has(item.thread.id), expanded: expandedThreadId === item.thread.id }"
+              @click="selectAndOpenThread(item.element.id, item.thread.id)"
+            >
+              <!-- Initiator Comment -->
+              <div class="initiator-header">
                 <AvatarIcon 
-                  :src="comment.userAvatar" 
-                  :name="comment.userName"
-                  :userId="comment.userId"
-                  class="reply-avatar" 
+                  :src="item.initiator.userAvatar" 
+                  :name="item.initiator.userName"
+                  :userId="item.initiator.userId"
+                  class="initiator-avatar" 
                 />
-                <div class="reply-body">
-                  <div class="reply-meta">
-                    <strong>{{ comment.userName }}</strong>
-                    <div class="meta-right">
-                      <span class="time" :title="formatAbsoluteTime(comment.timestamp)">{{ formatRelativeTime(comment.timestamp) }}</span>
-                      <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(comment.id)">
-                        <button class="more-btn" title="More Options">⋮</button>
-                        <div class="more-actions-menu" v-show="activeMenuId === comment.id" @click.stop>
-                          <div class="colors-row">
-                            <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fee2e2'})"></button>
-                            <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#ffedd5'})"></button>
-                            <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fef9c3'})"></button>
-                            <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dcfce7'})"></button>
-                            <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dbeafe'})"></button>
-                            <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: undefined})">✖</button>
-                          </div>
-                          <div class="styles-row">
-                            <button class="style-btn" :class="{ active: (comment.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'bold')"><b>B</b></button>
-                            <button class="style-btn" :class="{ active: (comment.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'strikethrough')"><s>S</s></button>
-                            <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'none')">Clear</button>
-                          </div>
-                          <button 
-                            v-if="comment.userId === currentUser?.userId"
-                            class="action-btn delete-text-btn" 
-                            @click.stop="handleDelete(item.element.id, item.thread.id, comment.id)"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
-                          </button>
+                <div class="initiator-meta">
+                  <strong>{{ item.initiator.userName }}</strong>
+                  <span class="badge" v-if="item.element.id === '__canvas_global__'">Canvas</span>
+                  <span class="badge component-badge" v-else>{{ item.element.type }}</span>
+                  <div class="meta-right">
+                    <span class="time" :title="formatAbsoluteTime(item.initiator.timestamp)">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
+                    <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(item.initiator.id)">
+                      <button class="more-btn" title="More Options">⋮</button>
+                      <div class="more-actions-menu" v-show="activeMenuId === item.initiator.id" @click.stop>
+                        <div class="colors-row">
+                          <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fee2e2'})"></button>
+                          <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#ffedd5'})"></button>
+                          <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fef9c3'})"></button>
+                          <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dcfce7'})"></button>
+                          <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dbeafe'})"></button>
+                          <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: undefined})">✖</button>
                         </div>
+                        <div class="styles-row">
+                          <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'bold')"><b>B</b></button>
+                          <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'strikethrough')"><s>S</s></button>
+                          <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'none')">Clear</button>
+                        </div>
+                        <button 
+                          v-if="item.initiator.userId === currentUser?.userId"
+                          class="action-btn delete-text-btn" 
+                          @click.stop="handleDelete(item.element.id, item.thread.id, item.initiator.id)"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
+                        </button>
                       </div>
                     </div>
                   </div>
-                  <div class="reply-text" :class="comment.style" :style="{ backgroundColor: comment.color }">{{ comment.content }}</div>
+                </div>
+              </div>
+              
+              <div class="initiator-content" :class="item.initiator.style" :style="{ backgroundColor: item.initiator.color }">
+                {{ item.initiator.content }}
+              </div>
+
+              <!-- Footer: Participants and Replies (Hide if expanded or no replies) -->
+              <div class="thread-footer" v-if="expandedThreadId !== item.thread.id && item.replyCount > 0">
+                <div class="participants">
+                  <AvatarIcon 
+                    v-for="user in item.participants.slice(0, 3)" 
+                    :key="user.userId"
+                    :src="user.userAvatar" 
+                    :name="user.userName"
+                    :userId="user.userId"
+                    class="participant-avatar"
+                  />
+                  <span v-if="item.participants.length > 3" class="more-users">
+                    + {{ item.participants.length - 3 }} users
+                  </span>
+                </div>
+                <div class="replies-count" v-if="item.replyCount > 0">
+                  {{ item.replyCount }} replies
+                </div>
+              </div>
+
+              <!-- Expanded Thread Content (Inline Replies) -->
+              <div v-if="expandedThreadId === item.thread.id" class="expanded-thread-content" @click.stop>
+                
+                <div class="inline-replies-list" v-if="item.thread.comments.length > 1">
+                  <div v-for="comment in item.thread.comments.slice(1)" :key="comment.id" class="inline-reply-item">
+                    <AvatarIcon 
+                      :src="comment.userAvatar" 
+                      :name="comment.userName"
+                      :userId="comment.userId"
+                      class="reply-avatar" 
+                    />
+                    <div class="reply-body">
+                      <div class="reply-meta">
+                        <strong>{{ comment.userName }}</strong>
+                        <div class="meta-right">
+                          <span class="time" :title="formatAbsoluteTime(comment.timestamp)">{{ formatRelativeTime(comment.timestamp) }}</span>
+                          <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(comment.id)">
+                            <button class="more-btn" title="More Options">⋮</button>
+                            <div class="more-actions-menu" v-show="activeMenuId === comment.id" @click.stop>
+                              <div class="colors-row">
+                                <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fee2e2'})"></button>
+                                <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#ffedd5'})"></button>
+                                <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fef9c3'})"></button>
+                                <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dcfce7'})"></button>
+                                <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dbeafe'})"></button>
+                                <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: undefined})">✖</button>
+                              </div>
+                              <div class="styles-row">
+                                <button class="style-btn" :class="{ active: (comment.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'bold')"><b>B</b></button>
+                                <button class="style-btn" :class="{ active: (comment.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'strikethrough')"><s>S</s></button>
+                                <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'none')">Clear</button>
+                              </div>
+                              <button 
+                                v-if="comment.userId === currentUser?.userId"
+                                class="action-btn delete-text-btn" 
+                                @click.stop="handleDelete(item.element.id, item.thread.id, comment.id)"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="reply-text" :class="comment.style" :style="{ backgroundColor: comment.color }">{{ comment.content }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Reply Input -->
+                <div class="inline-reply-box">
+                  <input 
+                    :value="replyTexts[item.thread.id] || ''" 
+                    @input="e => replyTexts[item.thread.id] = (e.target as HTMLInputElement).value"
+                    placeholder="Type a reply..." 
+                    @keyup.enter="handleInlineReply(item.element, item.thread.id)"
+                  />
+                  <button @click.stop="handleInlineReply(item.element, item.thread.id)">Reply</button>
                 </div>
               </div>
             </div>
-
-            <!-- Reply Input -->
-            <div class="inline-reply-box">
-              <input 
-                :value="replyTexts[item.thread.id] || ''" 
-                @input="e => replyTexts[item.thread.id] = (e.target as HTMLInputElement).value"
-                placeholder="Type a reply..." 
-                @keyup.enter="handleInlineReply(item.element, item.thread.id)"
-              />
-              <button @click.stop="handleInlineReply(item.element, item.thread.id)">Reply</button>
-            </div>
-
-          </div>
-        </div>
+          </template>
+        </template>
       </div>
     </div>
   </div>
@@ -287,7 +314,22 @@ const toggleProfileMenu = () => {
   if (showProfileMenu.value && currentUser.value) {
     tempUserName.value = currentUser.value.name;
     activeMenuId.value = null; // hide other menus
+    showViewMenu.value = false;
   }
+};
+
+const viewMode = ref<'time-desc' | 'time-asc' | 'grouped'>('time-desc');
+const showViewMenu = ref(false);
+
+const toggleViewMenu = () => {
+  showViewMenu.value = !showViewMenu.value;
+  activeMenuId.value = null;
+  showProfileMenu.value = false;
+};
+
+const setViewMode = (mode: 'time-desc' | 'time-asc' | 'grouped') => {
+  viewMode.value = mode;
+  showViewMenu.value = false;
 };
 
 const shuffleAvatar = () => {
@@ -380,6 +422,7 @@ const handleGlobalClick = () => {
   activeMenuId.value = null;
   showSortDropdown.value = false;
   showProfileMenu.value = false;
+  showViewMenu.value = false;
 };
 
 onMounted(() => {
@@ -498,18 +541,53 @@ const filteredThreads = computed(() => {
     });
   }
 
-  list = list.sort((a, b) => {
-    // Pin Canvas remarks to the top
-    const aIsCanvas = a.element.id === '__canvas_global__';
-    const bIsCanvas = b.element.id === '__canvas_global__';
-    if (aIsCanvas && !bIsCanvas) return -1;
-    if (!aIsCanvas && bIsCanvas) return 1;
-
-    // Default sort by date (newest first)
-    return b.initiator.timestamp - a.initiator.timestamp;
-  });
-
   return list;
+});
+
+const displayList = computed(() => {
+  const list = [...filteredThreads.value];
+  
+  if (viewMode.value === 'time-desc' || viewMode.value === 'time-asc') {
+    list.sort((a, b) => {
+      const aIsCanvas = a.element.id === '__canvas_global__';
+      const bIsCanvas = b.element.id === '__canvas_global__';
+      if (aIsCanvas && !bIsCanvas) return -1;
+      if (!aIsCanvas && bIsCanvas) return 1;
+
+      return viewMode.value === 'time-desc' 
+        ? b.initiator.timestamp - a.initiator.timestamp
+        : a.initiator.timestamp - b.initiator.timestamp;
+    });
+    
+    return list.map(item => ({ type: 'thread', item, id: '' }));
+  } else if (viewMode.value === 'grouped') {
+    const groups: Record<string, typeof list> = {};
+    list.forEach(item => {
+      const id = item.element.id;
+      if (!groups[id]) groups[id] = [];
+      groups[id].push(item);
+    });
+    
+    const result: any[] = [];
+    
+    const keys = Object.keys(groups).sort((a, b) => {
+      if (a === '__canvas_global__') return -1;
+      if (b === '__canvas_global__') return 1;
+      return a.localeCompare(b);
+    });
+    
+    keys.forEach(key => {
+      const title = key === '__canvas_global__' ? 'Canvas Remarks' : `Element: ${key.substring(0, 8)}`;
+      result.push({ type: 'header', id: `header_${key}`, title, item: null });
+      groups[key].sort((a, b) => b.initiator.timestamp - a.initiator.timestamp);
+      groups[key].forEach(item => {
+        result.push({ type: 'thread', item, id: '' });
+      });
+    });
+    
+    return result;
+  }
+  return [];
 });
 
 const selectAndOpenThread = (elementId: string, threadId: string) => {
@@ -741,7 +819,7 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .excal-search-header {
-  padding: 16px 16px 8px 16px;
+  padding: 12px 16px 8px 16px;
 }
 
 .search-and-close {
@@ -755,7 +833,7 @@ const formatRelativeTime = (ts: number) => {
   align-items: center;
   background: #f3f4f6;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   flex: 1;
 }
 
@@ -774,7 +852,7 @@ const formatRelativeTime = (ts: number) => {
 .search-input-wrapper input {
   flex: 1;
   border: none; background: transparent; outline: none;
-  font-size: 14px; color: #374151;
+  font-size: 13px; color: #374151;
 }
 
 .shortcut-hint {
@@ -795,7 +873,7 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .icon-btn {
-  background: #f3f4f6; border: none; border-radius: 6px;
+  background: transparent; border: none; border-radius: 6px;
   width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: #4b5563; transition: background 0.2s;
 }
@@ -803,7 +881,7 @@ const formatRelativeTime = (ts: number) => {
 .icon-btn svg { width: 16px; height: 16px; }
 
 .sort-dropdown {
-  position: absolute; top: 100%; left: 0; margin-top: 4px;
+  position: absolute; top: 100%; right: 0; margin-top: 4px;
   background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   width: 240px; z-index: 10; padding: 8px 0;
@@ -843,7 +921,16 @@ const formatRelativeTime = (ts: number) => {
 .text-btn .check-icon { margin-right: 6px; }
 
 .excal-threads-list {
-  flex: 1; overflow-y: auto;
+  flex: 1; overflow-y: auto; padding-bottom: 16px;
+}
+
+.group-header {
+  padding: 12px 16px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
 }
 
 .empty-state {
