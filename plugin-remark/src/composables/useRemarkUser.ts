@@ -49,7 +49,25 @@ export function useRemarkUser() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        currentUser.value = JSON.parse(stored) as RemarkUser;
+        const parsed = JSON.parse(stored) as RemarkUser;
+        let changed = false;
+        if (!parsed.name) {
+          parsed.name = generateRandomName();
+          changed = true;
+        }
+        if (!parsed.avatar) {
+          const randomId = Math.floor(Math.random() * 50) + 1;
+          parsed.avatar = `/avatar/scenery_${randomId}.jpg`;
+          changed = true;
+        }
+        if (!parsed.userId) {
+          parsed.userId = `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+          changed = true;
+        }
+        currentUser.value = parsed;
+        if (changed) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
         return currentUser.value;
       }
     } catch (e) {

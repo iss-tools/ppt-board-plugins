@@ -41,6 +41,14 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
         ctx.api.elements.add(payload.element, true);
       } else if (payload.action === 'remove' && payload.ids) {
         ctx.api.elements.remove(payload.ids, true);
+      } else if (payload.action === 'pluginData') {
+        if (!ctx.state.document.pluginDatas) ctx.state.document.pluginDatas = {};
+        if (!ctx.state.document.pluginDatas[payload.pluginName]) ctx.state.document.pluginDatas[payload.pluginName] = {};
+        if (!payload.key) {
+          ctx.state.document.pluginDatas[payload.pluginName] = payload.value;
+        } else {
+          ctx.state.document.pluginDatas[payload.pluginName][payload.key] = payload.value;
+        }
       }
       setTimeout(() => { isSyncing.value = false; }, 30);
     } else if (data.type === 'sync-full-state') {
