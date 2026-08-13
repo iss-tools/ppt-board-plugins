@@ -1,6 +1,26 @@
 <template>
   <div class="plugin-remark-overlay" v-if="showRemarks">
     
+    <!-- Canvas Badges for Element Remarks -->
+    <template v-for="badge in canvasBadges" :key="badge.elementId">
+      <div 
+        class="remark-canvas-badge"
+        :style="getBadgeStyle(badge.elementId)"
+        @click.stop="handleBadgeClick(badge.elementId, badge.threadId)"
+      >
+        <div class="avatar-stack">
+          <AvatarIcon 
+            v-for="user in badge.users.slice(0, 3)" 
+            :key="user.userId"
+            :src="user.userAvatar" 
+            :name="user.userName"
+            :userId="user.userId"
+            class="badge-avatar"
+          />
+          <div v-if="badge.users.length > 3" class="badge-more">+{{ badge.users.length - 3 }}</div>
+        </div>
+      </div>
+    </template>
     <!-- Global Right Sidebar -->
     <div class="excal-sidebar" v-if="showSidebar">
       <!-- Search Header -->
@@ -28,10 +48,10 @@
           <button class="color-btn" :class="{ active: filterColor === '#dbeafe' }" style="background-color: #dbeafe" title="Info" @click="toggleFilter('#dbeafe')"></button>
           <div class="filter-divider"></div>
           
-          <button class="style-btn" :class="{ active: filterStyle === 'bold' }" title="Bold" @click="toggleStyleFilter('bold')"><b>B</b></button>
-          <button class="style-btn" :class="{ active: filterStyle === 'strikethrough' }" title="Strikethrough" @click="toggleStyleFilter('strikethrough')"><s>S</s></button>
+          <button class="style-btn" :class="{ active: filterStyles.includes('bold') }" title="Bold" @click="toggleStyleFilter('bold')"><b>B</b></button>
+          <button class="style-btn" :class="{ active: filterStyles.includes('strikethrough') }" title="Strikethrough" @click="toggleStyleFilter('strikethrough')"><s>S</s></button>
         </div>
-        <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyle" @click="clearFilters">Clear</button>
+        <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyles.length > 0" @click="clearFilters">Clear</button>
       </div>
 
       <!-- Global Canvas Remark Input -->
@@ -71,7 +91,7 @@
               <span class="badge" v-if="item.element.id === '__canvas_global__'">Canvas</span>
               <span class="badge component-badge" v-else>{{ item.element.type }}</span>
               <div class="meta-right">
-                <span class="time">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
+                <span class="time" :title="formatAbsoluteTime(item.initiator.timestamp)">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
                 <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(item.initiator.id)">
                   <button class="more-btn" title="More Options">⋮</button>
                   <div class="more-actions-menu" v-show="activeMenuId === item.initiator.id" @click.stop>
@@ -84,9 +104,9 @@
                       <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: undefined})">✖</button>
                     </div>
                     <div class="styles-row">
-                      <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {style: 'bold'})"><b>B</b></button>
-                      <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {style: 'strikethrough'})"><s>S</s></button>
-                      <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {style: 'none'})">Clear</button>
+                      <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'bold')"><b>B</b></button>
+                      <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'strikethrough')"><s>S</s></button>
+                      <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'none')">Clear</button>
                     </div>
                     <button 
                       v-if="item.initiator.userId === currentUser?.userId"
@@ -140,7 +160,7 @@
                   <div class="reply-meta">
                     <strong>{{ comment.userName }}</strong>
                     <div class="meta-right">
-                      <span class="time">{{ formatRelativeTime(comment.timestamp) }}</span>
+                      <span class="time" :title="formatAbsoluteTime(comment.timestamp)">{{ formatRelativeTime(comment.timestamp) }}</span>
                       <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(comment.id)">
                         <button class="more-btn" title="More Options">⋮</button>
                         <div class="more-actions-menu" v-show="activeMenuId === comment.id" @click.stop>
@@ -153,9 +173,9 @@
                             <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: undefined})">✖</button>
                           </div>
                           <div class="styles-row">
-                            <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {style: 'bold'})"><b>B</b></button>
-                            <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {style: 'strikethrough'})"><s>S</s></button>
-                            <button class="style-btn" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {style: 'none'})">Clear</button>
+                            <button class="style-btn" :class="{ active: (comment.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'bold')"><b>B</b></button>
+                            <button class="style-btn" :class="{ active: (comment.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'strikethrough')"><s>S</s></button>
+                            <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'none')">Clear</button>
                           </div>
                           <button 
                             v-if="comment.userId === currentUser?.userId"
@@ -217,7 +237,7 @@ const searchQuery = ref('');
 const showSortDropdown = ref(false);
 const activeMenuId = ref<string | null>(null);
 const filterColor = ref<string | null>(null);
-const filterStyle = ref<string | null>(null);
+const filterStyles = ref<string[]>([]);
 const showResolved = ref(false);
 
 const toggleFilter = (color: string) => {
@@ -225,12 +245,16 @@ const toggleFilter = (color: string) => {
 };
 
 const toggleStyleFilter = (style: string) => {
-  filterStyle.value = filterStyle.value === style ? null : style;
+  if (filterStyles.value.includes(style)) {
+    filterStyles.value = filterStyles.value.filter(s => s !== style);
+  } else {
+    filterStyles.value.push(style);
+  }
 };
 
 const clearFilters = () => {
   filterColor.value = null;
-  filterStyle.value = null;
+  filterStyles.value = [];
 };
 
 const toggleMoreMenu = (id: string) => {
@@ -349,9 +373,12 @@ const filteredThreads = computed(() => {
     });
   }
 
-  if (filterStyle.value) {
+  if (filterStyles.value.length > 0) {
     list = list.filter(item => {
-      return item.thread.comments.some(c => c.style === filterStyle.value);
+      return item.thread.comments.some(c => {
+        const cStyles = (c.style || '').split(' ');
+        return filterStyles.value.every(s => cStyles.includes(s));
+      });
     });
   }
 
@@ -448,7 +475,79 @@ const handleUpdateStyle = (targetId: string, threadId: string, commentId: string
   activeMenuId.value = null;
 };
 
+const handleToggleItemStyle = (targetId: string, threadId: string, commentId: string, currentStyle: string | undefined, toggleStyleName: string) => {
+  if (toggleStyleName === 'none') {
+    handleUpdateStyle(targetId, threadId, commentId, { style: 'none' });
+    return;
+  }
+  let styles = (currentStyle || '').split(' ').filter(s => s && s !== 'none');
+  if (styles.includes(toggleStyleName)) {
+    styles = styles.filter(s => s !== toggleStyleName);
+  } else {
+    styles.push(toggleStyleName);
+  }
+  handleUpdateStyle(targetId, threadId, commentId, { style: styles.join(' ') as any });
+};
+
+// Canvas Badges logic
+const canvasBadges = computed(() => {
+  const groups = new Map<string, { elementId: string, threadId: string, users: any[] }>();
+  
+  for (const t of allCanvasThreads.value) {
+    if (t.element.id === '__canvas_global__') continue;
+    
+    const targetIds = t.element.id.split(',');
+    targetIds.forEach(id => {
+      if (!groups.has(id)) {
+        groups.set(id, {
+          elementId: id,
+          threadId: t.thread.id,
+          users: []
+        });
+      }
+      
+      const group = groups.get(id)!;
+      t.thread.comments.forEach(c => {
+        if (!group.users.find(u => u.userId === c.userId)) {
+          group.users.push({ userId: c.userId, userName: c.userName, userAvatar: c.userAvatar });
+        }
+      });
+    });
+  }
+  
+  return Array.from(groups.values());
+});
+
+const getBadgeStyle = (elementId: string): Record<string, any> => {
+  const el = state.runtime.activeElements.find((e: CanvasElementData) => e.id === elementId);
+  if (!el) return { display: 'none' };
+  
+  const scale = state.runtime.scale;
+  const x = el.x * scale + state.runtime.offsetX;
+  const y = el.y * scale + state.runtime.offsetY;
+  const w = (el.width || 0) * scale;
+  
+  return {
+    position: 'absolute',
+    left: `${x + w - 12}px`,
+    top: `${y - 12}px`,
+    zIndex: 100,
+    pointerEvents: 'auto'
+  };
+};
+
+const handleBadgeClick = (elementId: string, threadId: string) => {
+  if (forceClosedSidebar.value) {
+    forceClosedSidebar.value = false;
+  }
+  selectAndOpenThread(elementId, threadId);
+};
+
 // Utilities
+const formatAbsoluteTime = (ts: number) => {
+  return new Date(ts).toLocaleString();
+};
+
 const formatRelativeTime = (ts: number) => {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60000);
@@ -467,6 +566,45 @@ const formatRelativeTime = (ts: number) => {
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   z-index: 1000;
+}
+
+.remark-canvas-badge {
+  pointer-events: auto;
+}
+.remark-canvas-badge .avatar-stack {
+  display: flex;
+  flex-direction: row-reverse;
+  cursor: pointer;
+}
+.remark-canvas-badge .badge-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-right: -8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+.remark-canvas-badge .badge-avatar:hover {
+  transform: translateY(-2px);
+  z-index: 10;
+}
+.remark-canvas-badge .badge-more {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: -8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 0;
 }
 
 /* Excalidraw-like Global Sidebar */

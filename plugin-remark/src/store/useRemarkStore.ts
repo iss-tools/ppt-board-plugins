@@ -8,7 +8,7 @@ export interface Comment {
   userAvatar?: string;
   content: string;
   timestamp: number;
-  style?: 'bold' | 'strikethrough' | 'none';
+  style?: string; // e.g. 'bold' | 'strikethrough' | 'bold strikethrough' | 'none'
   color?: string;
 }
 
