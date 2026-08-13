@@ -1,4 +1,34 @@
 export default {
-  menu: {
+  remark: {
+    yourName: '您的姓名',
+    uploadCustom: '上传自定义头像',
+    randomizeName: '随机生成姓名',
+    quickSearch: '快速搜索',
+    closePanel: '关闭面板',
+    filter: '筛选:',
+    urgent: '紧急',
+    high: '高优',
+    medium: '中等',
+    low: '低优',
+    info: '提示',
+    bold: '加粗',
+    strikethrough: '删除线',
+    clear: '清除',
+    viewOptions: '视图选项',
+    newestFirst: '时间倒序 (最新在前)',
+    oldestFirst: '时间正序 (最旧在前)',
+    groupByComponent: '按组件分组',
+    addRemarkAs: '以 {name} 的身份发表全局批注...',
+    post: '发布',
+    noRemarks: '暂无批注。',
+    canvasRemarks: '画布全局批注',
+    element: '组件',
+    delete: '删除',
+    moreOptions: '更多选项',
+    clearColor: '清除颜色',
+    users: '人参与',
+    replies: '条回复',
+    typeReply: '输入回复...',
+    reply: '回复'
   }
 };

@@ -1,5 +1,5 @@
 <template>
-  <div class="plugin-remark-overlay" v-if="showRemarks">
+  <div class="plugin-remark-overlay" :class="{ dark: isDarkTheme }" v-if="showRemarks">
     
     <!-- Canvas Badges for Element Remarks -->
     <template v-for="badge in canvasBadges" :key="badge.elementId">
@@ -22,7 +22,7 @@
       </div>
     </template>
     <!-- Global Right Sidebar -->
-    <div class="excal-sidebar" v-if="showSidebar">
+    <div class="excal-sidebar" :class="{ dark: isDarkTheme }" v-if="showSidebar">
       <!-- Search Header -->
       <div class="excal-search-header">
         <div class="search-and-close">
@@ -47,7 +47,7 @@
                 </div>
               </div>
               <div class="profile-actions">
-                <span class="upload-link" @click="triggerUpload">Upload Custom</span>
+                <span class="upload-link" @click="triggerUpload">{{ t('remark.uploadCustom') }}</span>
               </div>
               <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;" />
               <div class="profile-name-input" style="display: flex; gap: 4px; align-items: center;">
@@ -56,9 +56,9 @@
                   v-model="tempUserName"
                   @blur="saveUserName"
                   @keyup.enter="saveUserName"
-                  placeholder="Your name"
+                  :placeholder="t('remark.yourName')"
                 />
-                <button class="icon-btn" @click.stop="randomizeName" title="Randomize Name" style="width: 28px; height: 28px;">
+                <button class="icon-btn" @click.stop="randomizeName" :title="t('remark.randomizeName')" style="width: 28px; height: 28px;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21L21.5 8"></path></svg>
                 </button>
               </div>
@@ -66,10 +66,10 @@
           </div>
           <div class="search-input-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" placeholder="Quick search" v-model="searchQuery" />
+            <input type="text" :placeholder="t('remark.quickSearch')" v-model="searchQuery" />
             <span class="shortcut-hint">⌘3</span>
           </div>
-          <button class="icon-btn close-btn" @click="closeSidebar" title="Close Panel">
+          <button class="icon-btn close-btn" @click="closeSidebar" :title="t('remark.closePanel')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
@@ -77,37 +77,37 @@
 
       <!-- Filter/Actions Bar -->
       <div class="excal-actions-bar filter-bar">
-        <span class="filter-label">Filter:</span>
+        <span class="filter-label">{{ t('remark.filter') }}</span>
         <div class="colors-row filter-colors">
-          <button class="color-btn" :class="{ active: filterColor === '#fee2e2' }" style="background-color: #fee2e2" title="Urgent" @click="toggleFilter('#fee2e2')"></button>
-          <button class="color-btn" :class="{ active: filterColor === '#ffedd5' }" style="background-color: #ffedd5" title="High" @click="toggleFilter('#ffedd5')"></button>
-          <button class="color-btn" :class="{ active: filterColor === '#fef9c3' }" style="background-color: #fef9c3" title="Medium" @click="toggleFilter('#fef9c3')"></button>
-          <button class="color-btn" :class="{ active: filterColor === '#dcfce7' }" style="background-color: #dcfce7" title="Low" @click="toggleFilter('#dcfce7')"></button>
-          <button class="color-btn" :class="{ active: filterColor === '#dbeafe' }" style="background-color: #dbeafe" title="Info" @click="toggleFilter('#dbeafe')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#fee2e2' }" style="background-color: #fee2e2" :title="t('remark.urgent')" @click="toggleFilter('#fee2e2')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#ffedd5' }" style="background-color: #ffedd5" :title="t('remark.high')" @click="toggleFilter('#ffedd5')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#fef9c3' }" style="background-color: #fef9c3" :title="t('remark.medium')" @click="toggleFilter('#fef9c3')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#dcfce7' }" style="background-color: #dcfce7" :title="t('remark.low')" @click="toggleFilter('#dcfce7')"></button>
+          <button class="color-btn" :class="{ active: filterColor === '#dbeafe' }" style="background-color: #dbeafe" :title="t('remark.info')" @click="toggleFilter('#dbeafe')"></button>
           <div class="filter-divider"></div>
           
-          <button class="style-btn" :class="{ active: filterStyles.includes('bold') }" title="Bold" @click="toggleStyleFilter('bold')"><b>B</b></button>
-          <button class="style-btn" :class="{ active: filterStyles.includes('strikethrough') }" title="Strikethrough" @click="toggleStyleFilter('strikethrough')"><s>S</s></button>
+          <button class="style-btn" :class="{ active: filterStyles.includes('bold') }" :title="t('remark.bold')" @click="toggleStyleFilter('bold')"><b>B</b></button>
+          <button class="style-btn" :class="{ active: filterStyles.includes('strikethrough') }" :title="t('remark.strikethrough')" @click="toggleStyleFilter('strikethrough')"><s>S</s></button>
         </div>
         <div class="filter-actions-right" style="display: flex; gap: 8px; margin-left: auto; align-items: center;">
-          <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyles.length > 0" @click="clearFilters">Clear</button>
+          <button class="text-btn clear-filter-btn" v-if="filterColor || filterStyles.length > 0" @click="clearFilters">{{ t('remark.clear') }}</button>
           
           <div class="sort-dropdown-container">
-            <button class="icon-btn" @click.stop="toggleViewMenu" title="View Options">
+            <button class="icon-btn" @click.stop="toggleViewMenu" :title="t('remark.viewOptions')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
             <div class="sort-dropdown" v-if="showViewMenu" @click.stop>
               <div class="dropdown-item" @click="setViewMode('time-desc')">
-                <span class="icon">↓</span> Newest first
+                <span class="icon">↓</span> {{ t('remark.newestFirst') }}
                 <svg v-if="viewMode === 'time-desc'" class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </div>
               <div class="dropdown-item" @click="setViewMode('time-asc')">
-                <span class="icon">↑</span> Oldest first
+                <span class="icon">↑</span> {{ t('remark.oldestFirst') }}
                 <svg v-if="viewMode === 'time-asc'" class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </div>
               <div class="dropdown-divider"></div>
               <div class="dropdown-item" @click="setViewMode('grouped')">
-                <span class="icon">⊞</span> Group by component
+                <span class="icon">⊞</span> {{ t('remark.groupByComponent') }}
                 <svg v-if="viewMode === 'grouped'" class="check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
               </div>
             </div>
@@ -119,17 +119,17 @@
       <div class="global-remark-input">
         <input 
           type="text" 
-          :placeholder="`Add remark as ${currentUser?.name || 'User'}...`" 
+          :placeholder="t('remark.addRemarkAs', { name: currentUser?.name || 'User' })" 
           v-model="globalRemarkText"
           @keyup.enter="handleGlobalReply"
         />
-        <button v-if="globalRemarkText.trim()" @click="handleGlobalReply">Post</button>
+        <button v-if="globalRemarkText.trim()" @click="handleGlobalReply">{{ t('remark.post') }}</button>
       </div>
 
       <!-- Threads List -->
       <div class="excal-threads-list" @click="showViewMenu = false">
         <div v-if="displayList.length === 0" class="empty-state">
-          No remarks found.
+          {{ t('remark.noRemarks') }}
         </div>
 
         <template v-for="row in displayList" :key="row.type === 'header' ? row.id : row.item.thread.id">
@@ -157,27 +157,27 @@
                   <div class="meta-right">
                     <span class="time" :title="formatAbsoluteTime(item.initiator.timestamp)">{{ formatRelativeTime(item.initiator.timestamp) }}</span>
                     <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(item.initiator.id)">
-                      <button class="more-btn" title="More Options">⋮</button>
+                      <button class="more-btn" :title="t('remark.moreOptions')">⋮</button>
                       <div class="more-actions-menu" v-show="activeMenuId === item.initiator.id" @click.stop>
                         <div class="colors-row">
-                          <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fee2e2'})"></button>
-                          <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#ffedd5'})"></button>
-                          <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fef9c3'})"></button>
-                          <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dcfce7'})"></button>
-                          <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dbeafe'})"></button>
-                          <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: undefined})">✖</button>
+                          <button class="color-btn" style="background-color: #fee2e2" :title="t('remark.urgent')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fee2e2'})"></button>
+                          <button class="color-btn" style="background-color: #ffedd5" :title="t('remark.high')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#ffedd5'})"></button>
+                          <button class="color-btn" style="background-color: #fef9c3" :title="t('remark.medium')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#fef9c3'})"></button>
+                          <button class="color-btn" style="background-color: #dcfce7" :title="t('remark.low')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dcfce7'})"></button>
+                          <button class="color-btn" style="background-color: #dbeafe" :title="t('remark.info')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: '#dbeafe'})"></button>
+                          <button class="color-btn clear" :title="t('remark.clearColor')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, item.initiator.id, {color: undefined})">✖</button>
                         </div>
                         <div class="styles-row">
                           <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'bold')"><b>B</b></button>
                           <button class="style-btn" :class="{ active: (item.initiator.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'strikethrough')"><s>S</s></button>
-                          <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'none')">Clear</button>
+                          <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, item.initiator.id, item.initiator.style, 'none')">{{ t('remark.clear') }}</button>
                         </div>
                         <button 
                           v-if="item.initiator.userId === currentUser?.userId"
                           class="action-btn delete-text-btn" 
                           @click.stop="handleDelete(item.element.id, item.thread.id, item.initiator.id)"
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> {{ t('remark.delete') }}
                         </button>
                       </div>
                     </div>
@@ -201,11 +201,11 @@
                     class="participant-avatar"
                   />
                   <span v-if="item.participants.length > 3" class="more-users">
-                    + {{ item.participants.length - 3 }} users
+                    + {{ item.participants.length - 3 }} {{ t('remark.users') }}
                   </span>
                 </div>
                 <div class="replies-count" v-if="item.replyCount > 0">
-                  {{ item.replyCount }} replies
+                  {{ item.replyCount }} {{ t('remark.replies') }}
                 </div>
               </div>
 
@@ -226,27 +226,27 @@
                         <div class="meta-right">
                           <span class="time" :title="formatAbsoluteTime(comment.timestamp)">{{ formatRelativeTime(comment.timestamp) }}</span>
                           <div class="more-actions-wrapper" @click.stop="toggleMoreMenu(comment.id)">
-                            <button class="more-btn" title="More Options">⋮</button>
+                            <button class="more-btn" :title="t('remark.moreOptions')">⋮</button>
                             <div class="more-actions-menu" v-show="activeMenuId === comment.id" @click.stop>
                               <div class="colors-row">
-                                <button class="color-btn" style="background-color: #fee2e2" title="Urgent" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fee2e2'})"></button>
-                                <button class="color-btn" style="background-color: #ffedd5" title="High" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#ffedd5'})"></button>
-                                <button class="color-btn" style="background-color: #fef9c3" title="Medium" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fef9c3'})"></button>
-                                <button class="color-btn" style="background-color: #dcfce7" title="Low" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dcfce7'})"></button>
-                                <button class="color-btn" style="background-color: #dbeafe" title="Info" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dbeafe'})"></button>
-                                <button class="color-btn clear" title="Clear Color" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: undefined})">✖</button>
+                                <button class="color-btn" style="background-color: #fee2e2" :title="t('remark.urgent')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fee2e2'})"></button>
+                                <button class="color-btn" style="background-color: #ffedd5" :title="t('remark.high')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#ffedd5'})"></button>
+                                <button class="color-btn" style="background-color: #fef9c3" :title="t('remark.medium')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#fef9c3'})"></button>
+                                <button class="color-btn" style="background-color: #dcfce7" :title="t('remark.low')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dcfce7'})"></button>
+                                <button class="color-btn" style="background-color: #dbeafe" :title="t('remark.info')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: '#dbeafe'})"></button>
+                                <button class="color-btn clear" :title="t('remark.clearColor')" @click.stop="handleUpdateStyle(item.element.id, item.thread.id, comment.id, {color: undefined})">✖</button>
                               </div>
                               <div class="styles-row">
                                 <button class="style-btn" :class="{ active: (comment.style || '').includes('bold') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'bold')"><b>B</b></button>
                                 <button class="style-btn" :class="{ active: (comment.style || '').includes('strikethrough') }" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'strikethrough')"><s>S</s></button>
-                                <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'none')">Clear</button>
+                                <button class="style-btn" @click.stop="handleToggleItemStyle(item.element.id, item.thread.id, comment.id, comment.style, 'none')">{{ t('remark.clear') }}</button>
                               </div>
                               <button 
                                 v-if="comment.userId === currentUser?.userId"
                                 class="action-btn delete-text-btn" 
                                 @click.stop="handleDelete(item.element.id, item.thread.id, comment.id)"
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> {{ t('remark.delete') }}
                               </button>
                             </div>
                           </div>
@@ -262,10 +262,10 @@
                   <input 
                     :value="replyTexts[item.thread.id] || ''" 
                     @input="e => replyTexts[item.thread.id] = (e.target as HTMLInputElement).value"
-                    placeholder="Type a reply..." 
+                    :placeholder="t('remark.typeReply')" 
                     @keyup.enter="handleInlineReply(item.element, item.thread.id)"
                   />
-                  <button @click.stop="handleInlineReply(item.element, item.thread.id)">Reply</button>
+                  <button @click.stop="handleInlineReply(item.element, item.thread.id)">{{ t('remark.reply') }}</button>
                 </div>
               </div>
             </div>
@@ -281,6 +281,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useCanvasContext, CanvasElementData } from '@iss-ai/ppt-board';
 import { useRemarkStore, Comment, RemarkThread } from '../store/useRemarkStore';
 import { useRemarkUser } from '../composables/useRemarkUser';
+import { useI18n } from '../composables/useI18n';
 import AvatarIcon from './AvatarIcon.vue';
 
 const ctx = useCanvasContext();
@@ -291,6 +292,8 @@ const {
   readThreadIds, markAsRead, markAllAsRead 
 } = remarkStore;
 const { currentUser, updateUser, generateRandomName } = useRemarkUser();
+const { t } = useI18n();
+const isDarkTheme = computed(() => ctx.state?.editor?.theme === 'dark');
 
 const forceClosedSidebar = ref(false);
 const expandedThreadId = ref<string | null>(null);
@@ -577,7 +580,7 @@ const displayList = computed(() => {
     });
     
     keys.forEach(key => {
-      const title = key === '__canvas_global__' ? 'Canvas Remarks' : `Element: ${key.substring(0, 8)}`;
+      const title = key === '__canvas_global__' ? t('remark.canvasRemarks') : `${t('remark.element')}: ${key.substring(0, 8)}`;
       result.push({ type: 'header', id: `header_${key}`, title, item: null });
       groups[key].sort((a, b) => b.initiator.timestamp - a.initiator.timestamp);
       groups[key].forEach(item => {
@@ -755,6 +758,51 @@ const formatRelativeTime = (ts: number) => {
 </script>
 
 <style scoped>
+
+.plugin-remark-overlay {
+  --remark-bg: #fff;
+  --remark-text: #374151;
+  --remark-text-secondary: #4b5563;
+  --remark-text-muted: #9ca3af;
+  --remark-border: #e5e7eb;
+  --remark-border-light: #f3f4f6;
+  --remark-hover: #f3f4f6;
+  --remark-bg-secondary: #f9fafb;
+  --remark-shadow: rgba(0,0,0,0.08);
+  --remark-popover-shadow: rgba(0, 0, 0, 0.1);
+  --remark-input-bg: #f3f4f6;
+  --remark-overlay: rgba(255,255,255,0.8);
+  --remark-unread-bg: #faf5ff;
+  --remark-unread-hover: #f3ebff;
+  --remark-badge-bg: #e0e7ff;
+  --remark-badge-text: #4338ca;
+  --remark-input-bg: #f3f4f6;
+  --remark-time: #6b7280;
+
+}
+
+.plugin-remark-overlay.dark {
+  --remark-bg: #1e1e1e;
+  --remark-text: #e5e5e5;
+  --remark-text-secondary: #a3a3a3;
+  --remark-text-muted: #737373;
+  --remark-border: #3f3f46;
+  --remark-border-light: #27272a;
+  --remark-hover: #27272a;
+  --remark-bg-secondary: #18181b;
+  --remark-shadow: rgba(0,0,0,0.5);
+  --remark-popover-shadow: rgba(0,0,0,0.4);
+  --remark-input-bg: #27272a;
+  --remark-overlay: rgba(0,0,0,0.6);
+  --remark-unread-bg: #2d2438;
+  --remark-unread-hover: #3b2c4d;
+  --remark-badge-bg: #1e1b4b;
+  --remark-badge-text: #818cf8;
+  --remark-input-bg: #27272a;
+  --remark-time: #9ca3af;
+
+}
+
 .plugin-remark-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -774,10 +822,10 @@ const formatRelativeTime = (ts: number) => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid var(--remark-bg);
   margin-right: -8px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: var(--remark-bg);
+  box-shadow: 0 2px 4px var(--remark-shadow);
   transition: transform 0.2s;
 }
 .remark-canvas-badge .badge-avatar:hover {
@@ -788,16 +836,16 @@ const formatRelativeTime = (ts: number) => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid white;
-  background: #f3f4f6;
-  color: #4b5563;
+  border: 2px solid var(--remark-bg);
+  background: var(--remark-hover);
+  color: var(--remark-text-secondary);
   font-size: 10px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: -8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px var(--remark-shadow);
   z-index: 0;
 }
 
@@ -808,9 +856,9 @@ const formatRelativeTime = (ts: number) => {
   top: 0;
   bottom: 0;
   width: 320px;
-  background: #fff;
-  box-shadow: -4px 0 24px rgba(0,0,0,0.08);
-  border-left: 1px solid #eaeaea;
+  background: var(--remark-bg);
+  box-shadow: -4px 0 24px var(--remark-shadow);
+  border-left: 1px solid var(--remark-border);
   display: flex;
   flex-direction: column;
   pointer-events: auto;
@@ -831,14 +879,14 @@ const formatRelativeTime = (ts: number) => {
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  background: #f3f4f6;
+  background: var(--remark-hover);
   border-radius: 8px;
   padding: 6px 10px;
   flex: 1;
 }
 
 .close-btn {
-  color: #9ca3af;
+  color: var(--remark-text-muted);
 }
 .close-btn:hover {
   color: #ef4444;
@@ -846,17 +894,17 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .search-icon {
-  width: 16px; height: 16px; color: #9ca3af; margin-right: 8px;
+  width: 16px; height: 16px; color: var(--remark-text-muted); margin-right: 8px;
 }
 
 .search-input-wrapper input {
   flex: 1;
   border: none; background: transparent; outline: none;
-  font-size: 13px; color: #374151;
+  font-size: 13px; color: var(--remark-text);
 }
 
 .shortcut-hint {
-  font-size: 12px; color: #9ca3af; background: #e5e7eb;
+  font-size: 12px; color: var(--remark-text-muted); background: var(--remark-border);
   padding: 2px 6px; border-radius: 4px;
 }
 
@@ -865,7 +913,7 @@ const formatRelativeTime = (ts: number) => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--remark-border-light);
 }
 
 .sort-dropdown-container {
@@ -875,49 +923,49 @@ const formatRelativeTime = (ts: number) => {
 .icon-btn {
   background: transparent; border: none; border-radius: 6px;
   width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: #4b5563; transition: background 0.2s;
+  cursor: pointer; color: var(--remark-text-secondary); transition: background 0.2s;
 }
-.icon-btn:hover { background: #e5e7eb; }
+.icon-btn:hover { background: var(--remark-border); }
 .icon-btn svg { width: 16px; height: 16px; }
 
 .sort-dropdown {
   position: absolute; top: 100%; right: 0; margin-top: 4px;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  background: var(--remark-bg); border: 1px solid var(--remark-border); border-radius: 8px;
+  box-shadow: 0 10px 25px -5px var(--remark-popover-shadow), 0 8px 10px -6px var(--remark-popover-shadow);
   width: 240px; z-index: 10; padding: 8px 0;
 }
 
 .dropdown-item {
-  padding: 8px 16px; font-size: 14px; color: #374151; cursor: pointer;
+  padding: 8px 16px; font-size: 14px; color: var(--remark-text); cursor: pointer;
   display: flex; align-items: center;
 }
-.dropdown-item:hover { background: #f9fafb; }
-.dropdown-item .icon { font-size: 12px; margin-right: 8px; color: #9ca3af; }
+.dropdown-item:hover { background: var(--remark-bg-secondary); }
+.dropdown-item .icon { font-size: 12px; margin-right: 8px; color: var(--remark-text-muted); }
 .dropdown-item .check { margin-left: auto; color: #4f46e5; }
 
 .dropdown-divider {
-  height: 1px; background: #f3f4f6; margin: 4px 0;
+  height: 1px; background: var(--remark-hover); margin: 4px 0;
 }
 
 .toggle-item {
   justify-content: space-between;
 }
 .toggle-switch {
-  width: 32px; height: 18px; background: #e5e7eb; border-radius: 10px;
+  width: 32px; height: 18px; background: var(--remark-border); border-radius: 10px;
   position: relative; transition: background 0.2s;
 }
 .toggle-switch.on { background: #10b981; }
 .toggle-switch .knob {
-  width: 14px; height: 14px; background: #fff; border-radius: 50%;
+  width: 14px; height: 14px; background: var(--remark-bg); border-radius: 50%;
   position: absolute; top: 2px; left: 2px; transition: transform 0.2s;
 }
 .toggle-switch.on .knob { transform: translateX(14px); }
 
 .text-btn {
-  background: none; border: none; color: #4b5563; font-size: 13px;
+  background: none; border: none; color: var(--remark-text-secondary); font-size: 13px;
   font-weight: 500; cursor: pointer; display: flex; align-items: center;
 }
-.text-btn:hover { color: #111827; }
+.text-btn:hover { color: var(--remark-text); }
 .text-btn .check-icon { margin-right: 6px; }
 
 .excal-threads-list {
@@ -929,17 +977,17 @@ const formatRelativeTime = (ts: number) => {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: var(--remark-text-muted);
   letter-spacing: 0.5px;
 }
 
 .empty-state {
-  padding: 40px 20px; text-align: center; color: #9ca3af; font-size: 13px;
+  padding: 40px 20px; text-align: center; color: var(--remark-text-muted); font-size: 13px;
 }
 
 .global-remark-input {
   display: flex; align-items: center; margin: 12px 16px;
-  background: #f3f4f6; border-radius: 8px; padding: 4px 4px 4px 12px;
+  background: var(--remark-hover); border-radius: 8px; padding: 4px 4px 4px 12px;
 }
 
 .user-profile-trigger {
@@ -965,8 +1013,8 @@ const formatRelativeTime = (ts: number) => {
   top: 100%;
   left: 0;
   margin-top: 8px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--remark-bg);
+  border: 1px solid var(--remark-border);
   border-radius: 12px;
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
   padding: 16px;
@@ -1026,26 +1074,28 @@ const formatRelativeTime = (ts: number) => {
 .profile-name-input input {
   width: 100%;
   padding: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--remark-border);
   border-radius: 6px;
   font-size: 14px;
   text-align: center;
   outline: none;
-  background: #f9fafb;
+  background: var(--remark-input-bg);
+  color: var(--remark-text);
 }
 .profile-name-input input:focus {
   border-color: #6366f1;
-  background: #fff;
+  background: var(--remark-bg);
 }
 
 .global-remark-input input {
   flex: 1;
   padding: 6px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--remark-border);
   border-radius: 4px;
   outline: none;
   font-size: 13px;
-  background: #fff;
+  background: var(--remark-bg);
+  color: var(--remark-text);
 }
 .global-remark-input input:focus {
   border-color: #6366f1;
@@ -1063,30 +1113,30 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .excal-thread-card {
-  padding: 14px 16px; border-bottom: 1px solid #e5e7eb; cursor: pointer;
+  padding: 14px 16px; border-bottom: 1px solid var(--remark-border); cursor: pointer;
   border-left: 3px solid transparent; transition: background 0.1s;
 }
-.excal-thread-card:hover { background: #f9fafb; }
+.excal-thread-card:hover { background: var(--remark-bg-secondary); }
 .excal-thread-card.unread {
   border-left-color: #4f46e5;
-  background: #faf5ff;
+  background: var(--remark-unread-bg);
 }
-.excal-thread-card.unread:hover { background: #f3ebff; }
+.excal-thread-card.unread:hover { background: var(--remark-unread-hover); }
 
 .initiator-header {
   display: flex; align-items: center; margin-bottom: 6px;
 }
 
 .initiator-avatar {
-  width: 22px; height: 22px; border-radius: 50%; border: 1px solid #e5e7eb; margin-right: 8px;
+  width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--remark-border); margin-right: 8px;
 }
 
 .initiator-meta {
-  display: flex; align-items: center; font-size: 11px; color: #4b5563; margin-bottom: 4px; flex: 1;
+  display: flex; align-items: center; font-size: 11px; color: var(--remark-text-secondary); margin-bottom: 4px; flex: 1;
 }
-.initiator-meta strong { color: #111827; font-weight: 600; }
-.initiator-meta .dot { margin: 0 4px; color: #9ca3af; }
-.initiator-meta .time { color: #6b7280; font-size: 11px; }
+.initiator-meta strong { color: var(--remark-text); font-weight: 600; }
+.initiator-meta .dot { margin: 0 4px; color: var(--remark-text-muted); }
+.initiator-meta .time { color: var(--remark-time); font-size: 11px; }
 .initiator-meta .meta-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
 .initiator-delete {
@@ -1094,8 +1144,8 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .badge {
-  background: #e0e7ff;
-  color: #4338ca;
+  background: var(--remark-badge-bg);
+  color: var(--remark-badge-text);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
@@ -1103,12 +1153,12 @@ const formatRelativeTime = (ts: number) => {
   font-weight: 600;
 }
 .component-badge {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--remark-hover);
+  color: var(--remark-text-secondary);
 }
 
 .initiator-content {
-  font-size: 12px; color: #374151; line-height: 1.5;
+  font-size: 12px; color: var(--remark-text); line-height: 1.5;
   margin-bottom: 10px; padding-left: 30px;
 }
 
@@ -1123,16 +1173,16 @@ const formatRelativeTime = (ts: number) => {
 
 .participant-avatar {
   width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid #fff; margin-right: -6px;
-  background: #f3f4f6; object-fit: cover;
+  border: 2px solid var(--remark-bg); margin-right: -6px;
+  background: var(--remark-hover); object-fit: cover;
 }
 
 .more-users {
-  font-size: 12px; color: #6b7280; margin-left: 12px;
+  font-size: 12px; color: var(--remark-time); margin-left: 12px;
 }
 
 .replies-count {
-  font-size: 12px; color: #6b7280;
+  font-size: 12px; color: var(--remark-time);
 }
 
 .expanded-thread-content {
@@ -1155,7 +1205,7 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .reply-avatar {
-  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; border: 1px solid #e5e7eb;
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--remark-border);
 }
 
 .reply-body {
@@ -1163,13 +1213,13 @@ const formatRelativeTime = (ts: number) => {
 }
 
 .reply-meta {
-  display: flex; align-items: center; font-size: 11px; color: #4b5563; margin-bottom: 4px;
+  display: flex; align-items: center; font-size: 11px; color: var(--remark-text-secondary); margin-bottom: 4px;
 }
-.reply-meta strong { color: #111827; margin-right: 6px; font-size: 12px; }
+.reply-meta strong { color: var(--remark-text); margin-right: 6px; font-size: 12px; }
 .reply-meta .meta-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
 .reply-text {
-  font-size: 12px; color: #374151; line-height: 1.4; word-break: break-word;
+  font-size: 12px; color: var(--remark-text); line-height: 1.4; word-break: break-word;
 }
 
 .delete-btn {
@@ -1187,15 +1237,15 @@ const formatRelativeTime = (ts: number) => {
 .inline-reply-box input {
   flex: 1;
   padding: 6px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--remark-border);
   border-radius: 4px;
   outline: none;
   font-size: 12px;
-  background: #f9fafb;
+  background: var(--remark-bg-secondary);
 }
 .inline-reply-box input:focus {
   border-color: #6366f1;
-  background: #fff;
+  background: var(--remark-bg);
 }
 
 .inline-reply-box button {
@@ -1233,19 +1283,19 @@ const formatRelativeTime = (ts: number) => {
   cursor: pointer;
   padding: 2px 8px;
   font-size: 16px;
-  color: #6b7280;
+  color: var(--remark-time);
   line-height: 1;
 }
 .more-btn:hover {
-  color: #111827;
+  color: var(--remark-text);
 }
 .more-actions-menu {
   display: flex;
   position: absolute;
   right: 0;
   top: 100%;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--remark-bg);
+  border: 1px solid var(--remark-border);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   border-radius: 6px;
   z-index: 100;
@@ -1272,7 +1322,7 @@ const formatRelativeTime = (ts: number) => {
   justify-content: center;
 }
 .color-btn.active {
-  border-color: #4b5563;
+  border-color: var(--remark-text-secondary);
   transform: scale(1.1);
 }
 .filter-bar {
@@ -1281,19 +1331,19 @@ const formatRelativeTime = (ts: number) => {
 }
 .filter-label {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--remark-time);
   font-weight: 500;
 }
 .clear-filter-btn {
   margin-left: auto;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--remark-time);
 }
 .clear-filter-btn:hover {
   color: #ef4444;
 }
 .filter-divider {
-  width: 1px; height: 16px; background: #e5e7eb; margin: 0 4px;
+  width: 1px; height: 16px; background: var(--remark-border); margin: 0 4px;
 }
 .filter-colors {
   display: flex;
@@ -1301,14 +1351,14 @@ const formatRelativeTime = (ts: number) => {
 }
 .filter-colors .style-btn {
   width: 20px; height: 20px; padding: 0; border: none; background: transparent;
-  color: #6b7280; display: flex; align-items: center; justify-content: center;
+  color: var(--remark-time); display: flex; align-items: center; justify-content: center;
   border-radius: 4px; cursor: pointer; flex: none;
 }
-.filter-colors .style-btn:hover { background: #f3f4f6; color: #111827; }
-.filter-colors .style-btn.active { background: #e5e7eb; color: #111827; }
+.filter-colors .style-btn:hover { background: var(--remark-hover); color: var(--remark-text); }
+.filter-colors .style-btn.active { background: var(--remark-border); color: var(--remark-text); }
 .color-btn.clear {
-  background: white;
-  color: #9ca3af;
+  background: var(--remark-bg);
+  color: var(--remark-text-muted);
   font-size: 10px;
 }
 .color-btn:hover {
@@ -1323,15 +1373,15 @@ const formatRelativeTime = (ts: number) => {
 .style-btn {
   flex: 1;
   padding: 4px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border: 1px solid var(--remark-border);
+  background: var(--remark-bg-secondary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  color: #374151;
+  color: var(--remark-text);
 }
 .style-btn:hover {
-  background: #f3f4f6;
+  background: var(--remark-hover);
 }
 
 .action-btn.delete-text-btn {

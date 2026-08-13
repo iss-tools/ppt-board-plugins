@@ -1,4 +1,34 @@
 export default {
-  menu: {
+  remark: {
+    yourName: 'Your name',
+    uploadCustom: 'Upload Custom',
+    randomizeName: 'Randomize Name',
+    quickSearch: 'Quick search',
+    closePanel: 'Close Panel',
+    filter: 'Filter:',
+    urgent: 'Urgent',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
+    info: 'Info',
+    bold: 'Bold',
+    strikethrough: 'Strikethrough',
+    clear: 'Clear',
+    viewOptions: 'View Options',
+    newestFirst: 'Newest first',
+    oldestFirst: 'Oldest first',
+    groupByComponent: 'Group by component',
+    addRemarkAs: 'Add remark as {name}...',
+    post: 'Post',
+    noRemarks: 'No remarks found.',
+    canvasRemarks: 'Canvas Remarks',
+    element: 'Element',
+    delete: 'Delete',
+    moreOptions: 'More Options',
+    clearColor: 'Clear Color',
+    users: 'users',
+    replies: 'replies',
+    typeReply: 'Type a reply...',
+    reply: 'Reply'
   }
 };
