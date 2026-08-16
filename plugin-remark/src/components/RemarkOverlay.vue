@@ -1,5 +1,5 @@
 <template>
-  <div class="plugin-remark-overlay" :class="{ dark: isDarkTheme }" v-if="showRemarks">
+  <div class="plugin-remark-overlay" :class="{ 'remark-theme-dark': isDarkTheme }" v-if="showRemarks">
 
     <!-- Canvas Badges for Element Remarks -->
     <template v-for="badge in canvasBadges" :key="badge.elementId">
@@ -13,7 +13,7 @@
       </div>
     </template>
     <!-- Global Right Sidebar -->
-    <div class="excal-sidebar" :class="{ dark: isDarkTheme }" v-if="showSidebar">
+    <div class="excal-sidebar" :class="{ 'remark-theme-dark': isDarkTheme }" v-if="showSidebar">
       <!-- Search Header -->
       <div class="excal-search-header">
         <div class="search-and-close">
@@ -804,7 +804,7 @@ const formatRelativeTime = (ts: number) => {
 
 }
 
-.plugin-remark-overlay.dark {
+.plugin-remark-overlay.remark-theme-dark {
   --remark-bg: #1e1e1e;
   --remark-text: #e5e5e5;
   --remark-text-secondary: #a3a3a3;
