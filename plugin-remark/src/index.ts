@@ -29,7 +29,7 @@ export const RemarkPlugin: CanvasPlugin = {
     ctx.api.editor.registerContextMenuItem({
       id: 'plugin-ctx-add-remark',
       get label() { return t('remark.addRemark'); },
-      icon: '💬',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>',
       show: menuCtx => menuCtx.selectedIds.length === 1,
       onClick: menuCtx => {
         const targetId = menuCtx.selectedIds[0];
@@ -52,7 +52,7 @@ export const RemarkPlugin: CanvasPlugin = {
     // ==========================================
     ctx.api.editor.registerToolbarItem({
       id: 'plugin-btn-toggle-remark',
-      icon: '👁️',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>',
       get label() { return t('remark.toggleRemarks'); },
       get tooltip() { return t('remark.toggleRemarks'); },
       position: 'right',

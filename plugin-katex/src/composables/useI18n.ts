@@ -6,8 +6,8 @@ import en from '../locales/en';
 type Language = 'zh' | 'en';
 const messages: Record<Language, any> = { zh, en };
 
-export function useI18n() {
-  const ctx = useCanvasContext();
+export function useI18n(pluginCtx?: any) {
+  const ctx = pluginCtx || useCanvasContext();
 
   const currentLang = computed<Language>(() => {
     const lang = ctx.state?.editor?.language || 'zh';
@@ -20,14 +20,14 @@ export function useI18n() {
     for (const k of keys) {
       if (val) val = val[k];
     }
-    
+
     let str = val || key;
     if (typeof str === 'string' && replacements) {
       Object.keys(replacements).forEach(k => {
         str = str.replace(`{${k}}`, String(replacements[k]));
       });
     }
-    
+
     return str;
   };
 

@@ -198,7 +198,8 @@ const remoteSelections = computed(() => {
 
   for (const [id, user] of Object.entries(remoteUsers.value)) {
     if (user.selectedIds && user.selectedIds.length > 0) {
-      for (const selId of user.selectedIds) {
+      if (user.selectedIds.length === 1) {
+        const selId = user.selectedIds[0];
         const el = elementsMap.get(selId);
         if (el && el.width !== undefined && el.height !== undefined) {
           result.push({
@@ -211,6 +212,61 @@ const remoteSelections = computed(() => {
               width: `${el.width * scale.value}px`,
               height: `${el.height * scale.value}px`,
               transform: `rotate(${el.rotation || 0}deg)`,
+              border: `2px solid #ff4d4f`,
+              position: 'absolute',
+              pointerEvents: 'none',
+              boxSizing: 'border-box'
+            }
+          });
+        }
+      } else {
+        // Multiple elements selected: compute union bounding box (AABB)
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        let hasValidEl = false;
+
+        for (const selId of user.selectedIds) {
+          const el = elementsMap.get(selId);
+          if (el && el.width !== undefined && el.height !== undefined) {
+            hasValidEl = true;
+            const rotation = el.rotation || 0;
+            if (rotation === 0) {
+              minX = Math.min(minX, el.x);
+              minY = Math.min(minY, el.y);
+              maxX = Math.max(maxX, el.x + el.width);
+              maxY = Math.max(maxY, el.y + el.height);
+            } else {
+              const rad = rotation * Math.PI / 180;
+              const cos = Math.cos(rad);
+              const sin = Math.sin(rad);
+              const points = [
+                { x: 0, y: 0 },
+                { x: el.width, y: 0 },
+                { x: el.width, y: el.height },
+                { x: 0, y: el.height }
+              ];
+              for (const p of points) {
+                // Assuming top-left pivot
+                const rx = el.x + p.x * cos - p.y * sin;
+                const ry = el.y + p.x * sin + p.y * cos;
+                minX = Math.min(minX, rx);
+                minY = Math.min(minY, ry);
+                maxX = Math.max(maxX, rx);
+                maxY = Math.max(maxY, ry);
+              }
+            }
+          }
+        }
+
+        if (hasValidEl) {
+          result.push({
+            clientId: user.clientId,
+            name: user.name,
+            avatar: user.avatar,
+            style: {
+              left: `${minX * scale.value + offsetX.value}px`,
+              top: `${minY * scale.value + offsetY.value}px`,
+              width: `${(maxX - minX) * scale.value}px`,
+              height: `${(maxY - minY) * scale.value}px`,
               border: `2px solid #ff4d4f`,
               position: 'absolute',
               pointerEvents: 'none',
