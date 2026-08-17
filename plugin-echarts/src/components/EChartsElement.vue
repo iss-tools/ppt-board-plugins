@@ -117,7 +117,17 @@ const renderChart = () => {
     return s;
   });
 
+  const fontFamily = props.element.props?.fontFamily as string || undefined;
+  const fontSize = props.element.props?.fontSize ? parseInt(props.element.props.fontSize as string) : undefined;
+  // Use text fill color if available, fallback to color
+  const color = (props.element.props?.fill || props.element.props?.color) as string || '#333';
+
   const finalOptions: echarts.EChartsCoreOption = {
+    textStyle: {
+      fontFamily,
+      fontSize,
+      color
+    },
     ...defaultChartOptions,
     ...userOptions,
     series: generatedSeries
