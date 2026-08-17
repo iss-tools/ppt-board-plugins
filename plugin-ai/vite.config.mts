@@ -23,7 +23,7 @@ export default defineConfig({
       formats: ['es', 'cjs', 'umd', 'iife'],
     },
     rollupOptions: {
-      external: ['@iss-ai/ppt-board','vue','fast-json-patch'],
+      external: ['@iss-ai/ppt-board', 'vue', 'naive-ui'],
       output: {
         globals: {
           vue: 'Vue',

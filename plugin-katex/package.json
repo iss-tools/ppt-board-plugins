@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-katex",
   "description": "A ppt-board plugin",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "author": "iss-tools",
   "keywords": [
     "katex",
@@ -66,7 +66,7 @@
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@eslint/js": "^10.0.1",
-    "@iss-ai/ppt-board": "workspace:*",
+    "@iss-ai/ppt-board": "^0.0.8",
     "@types/jest": "^29.5.14",
     "@types/json-bigint": "^1.0.4",
     "@types/katex": "^0.16.8",
@@ -109,7 +109,7 @@
     "vue-tsc": "^2.1.10"
   },
   "peerDependencies": {
-    "@iss-ai/ppt-board": "workspace:*",
+    "@iss-ai/ppt-board": "^0.0.8",
     "vue": "^3.0.0",
     "naive-ui": "^2.44.1"
   },

@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-storage",
   "description": "Local database and document persistence management using Dexie.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "iss-tools",
   "keywords": [
     "utils",
@@ -68,7 +68,7 @@
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@eslint/js": "^10.0.1",
-    "@iss-ai/ppt-board": "workspace:*",
+    "@iss-ai/ppt-board": "^0.0.8",
     "@types/jest": "^29.5.14",
     "@types/json-bigint": "^1.0.4",
     "@types/lodash-es": "^4.17.10",
@@ -112,6 +112,6 @@
   "peerDependencies": {
     "naive-ui": "^2.44.1",
     "vue": "^3.0.0",
-    "@iss-ai/ppt-board": "workspace:*"
+    "@iss-ai/ppt-board": "^0.0.8"
   }
 }

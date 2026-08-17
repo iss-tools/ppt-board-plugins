@@ -192,7 +192,7 @@ const offsetY = computed(() => pluginCtx?.state.runtime.offsetY || 0);
 const remoteUsers = computed(() => ablySync?.remoteUsers.value || {});
 
 const remoteSelections = computed(() => {
-  const result: { clientId: string, style: any }[] = [];
+  const result: { clientId: string, name?: string, avatar?: string, style: any }[] = [];
   const elements = pluginCtx?.state.runtime.activeElements || [];
   const elementsMap = new Map(elements.map((el: any) => [el.id, el]));
 

@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-style-props",
   "description": "Comprehensive properties inspector, timeline, and animation editor.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "iss-tools",
   "keywords": [
     "utils",
@@ -107,10 +107,10 @@
     "vite-plugin-dts": "^3.7.0",
     "vue": "^3.0.0",
     "vue-tsc": "^2.1.10",
-    "@iss-ai/ppt-board": "workspace:*"
+    "@iss-ai/ppt-board": "^0.0.8"
   },
   "peerDependencies": {
-    "@iss-ai/ppt-board": "workspace:*",
+    "@iss-ai/ppt-board": "^0.0.8",
     "vue": "^3.0.0",
     "animate.css": "^4.1.1"
   },
