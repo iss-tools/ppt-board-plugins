@@ -1,5 +1,9 @@
 export default {
   echarts: {
+    toolbar: {
+      addChart: '插入图表',
+      addTable: '插入表格'
+    },
     settings: {
       chartTypeTab: '图表类型',
       dataEditTab: '数据编辑',

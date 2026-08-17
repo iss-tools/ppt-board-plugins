@@ -1,5 +1,9 @@
 export default {
   echarts: {
+    toolbar: {
+      addChart: 'Add Chart',
+      addTable: 'Add Table'
+    },
     settings: {
       chartTypeTab: 'Chart Type',
       dataEditTab: 'Data Editor',

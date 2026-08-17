@@ -1,14 +1,16 @@
 import { computed } from 'vue';
 import { pluginCtx } from '../store';
+import { pluginCtx as defaultPluginCtx } from '../store';
 import zh from '../locales/zh';
 import en from '../locales/en';
 
 type Language = 'zh' | 'en';
 const messages: Record<Language, any> = { zh, en };
 
-export function useI18n() {
+export function useI18n(pluginCtx?: any) {
+  const ctx = pluginCtx || defaultPluginCtx;
   const currentLang = computed<Language>(() => {
-    const lang = pluginCtx?.state?.editor?.language || 'zh';
+    const lang = ctx?.state?.editor?.language || 'zh';
     return lang.startsWith('en') ? 'en' : 'zh';
   });
 

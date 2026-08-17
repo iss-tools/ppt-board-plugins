@@ -6,8 +6,8 @@ import en from '../locales/en';
 type Language = 'zh' | 'en';
 const messages: Record<Language, any> = { zh, en };
 
-export function useI18n() {
-  const ctx = useCanvasContext();
+export function useI18n(pluginCtx?: any) {
+  const ctx = pluginCtx || useCanvasContext();
 
   const currentLang = computed<Language>(() => {
     const lang = ctx.state?.editor?.language || 'zh';
