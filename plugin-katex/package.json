@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-katex",
   "description": "A ppt-board plugin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "iss-tools",
   "keywords": [
     "katex",

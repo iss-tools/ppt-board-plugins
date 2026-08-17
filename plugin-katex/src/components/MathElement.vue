@@ -17,7 +17,6 @@
 import { computed, ref, watch, nextTick } from 'vue';
 import type { CanvasElementData } from '@iss-ai/ppt-board';
 import katex from 'katex';
-import 'katex/dist/katex.min.css';
 
 const props = defineProps<{
   element: CanvasElementData;
