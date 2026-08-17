@@ -29,6 +29,10 @@ export default {
     users: '人参与',
     replies: '条回复',
     typeReply: '输入回复...',
-    reply: '回复'
+    reply: '回复',
+    hide: '隐藏批注',
+    show: '显示批注',
+    addRemark: '添加批注',
+    toggleRemarks: '批注显隐'
   }
 };

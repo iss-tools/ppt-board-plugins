@@ -23,7 +23,7 @@ export interface RemarkThread {
 
 export function useRemarkStore(ctx: CanvasPluginContext | null = null) {
   
-  const showRemarks = computed(() => ctx?.state?.editor?.showRemarks ?? true);
+  const showRemarks = computed(() => ctx?.state?.editor?.showRemarks ?? false);
 
   // Local state for unread tracking
   const readThreadIds = ref<Set<string>>(new Set());

@@ -2,6 +2,7 @@ import type { CanvasPlugin, CanvasPluginContext } from '@iss-ai/ppt-board';
 import RemarkOverlay from './components/RemarkOverlay.vue';
 import { useRemarkUser } from './composables/useRemarkUser';
 import { useRemarkStore } from './store/useRemarkStore';
+import { useI18n } from './composables/useI18n';
 
 export const RemarkPlugin: CanvasPlugin = {
   name: 'vue-canvas-plugin-remark',
@@ -15,6 +16,7 @@ export const RemarkPlugin: CanvasPlugin = {
     console.log('[RemarkPlugin] Current User:', currentUser);
 
     const remarkStore = useRemarkStore(ctx);
+    const { t } = useI18n(ctx);
 
     // ==========================================
     // 1. INJECT UI COMPONENTS
@@ -26,7 +28,7 @@ export const RemarkPlugin: CanvasPlugin = {
     // ==========================================
     ctx.api.editor.registerContextMenuItem({
       id: 'plugin-ctx-add-remark',
-      label: 'Add Remark / 添加批注',
+      get label() { return t('remark.addRemark'); },
       icon: '💬',
       show: menuCtx => menuCtx.selectedIds.length === 1,
       onClick: menuCtx => {
@@ -51,16 +53,46 @@ export const RemarkPlugin: CanvasPlugin = {
     ctx.api.editor.registerToolbarItem({
       id: 'plugin-btn-toggle-remark',
       icon: '👁️',
-      label: 'Toggle Remarks',
-      tooltip: 'Show/Hide Remarks on Canvas',
+      get label() { return t('remark.toggleRemarks'); },
+      get tooltip() { return t('remark.toggleRemarks'); },
       position: 'right',
       onClick: () => {
         remarkStore.toggleShowRemarks();
       },
     });
+    // ==========================================
+    // 4. CONTEXT MENU & SHORTCUT (Toggle Remarks)
+    // ==========================================
+    ctx.api.editor.registerContextMenuItem({
+      id: 'plugin-ctx-toggle-remark',
+      get label() {
+        return remarkStore.showRemarks.value
+          ? t('remark.hide')
+          : t('remark.show');
+      },
+      shortcut: 'Cmd+Shift+R',
+      onClick: () => {
+        remarkStore.toggleShowRemarks();
+      },
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle remarks with Cmd/Ctrl + Shift + R
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        remarkStore.toggleShowRemarks();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Save handler to context so we can remove it on destroy
+    (ctx as any)._remarkKeydownHandler = handleKeyDown;
   },
 
-  destroy() {
+  destroy(ctx?: CanvasPluginContext) {
+    if (ctx && (ctx as any)._remarkKeydownHandler) {
+      window.removeEventListener('keydown', (ctx as any)._remarkKeydownHandler);
+    }
     console.log('[RemarkPlugin] 🛑 Plugin Destroyed and cleaned up.');
   },
 };

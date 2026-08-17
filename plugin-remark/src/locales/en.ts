@@ -29,6 +29,10 @@ export default {
     users: 'users',
     replies: 'replies',
     typeReply: 'Type a reply...',
-    reply: 'Reply'
+    reply: 'Reply',
+    hide: 'Hide Remarks',
+    show: 'Show Remarks',
+    addRemark: 'Add Remark',
+    toggleRemarks: 'Toggle Remarks'
   }
 };
