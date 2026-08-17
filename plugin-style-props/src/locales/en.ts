@@ -145,6 +145,7 @@ export default {
     "ok": "OK",
     "solid": "Solid",
     "gradient": "Gradient",
+    "gradient_effect": "Gradient Presets",
     "drop_shadow": "Drop Shadow",
     "glow": "Glow",
     "bevel": "Bevel",

@@ -145,6 +145,7 @@ export default {
     "ok": "确定",
     "solid": "纯色",
     "gradient": "渐变",
+    "gradient_effect": "渐变预设",
     "drop_shadow": "外阴影",
     "glow": "发光",
     "bevel": "浮雕",
