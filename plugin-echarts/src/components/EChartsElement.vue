@@ -37,6 +37,7 @@ const defaultChartOptions = {
   tooltip: {},
   xAxis: { type: 'category' },
   yAxis: {},
+  legend: { show: true, bottom: 0 },
   series: [{ type: 'bar' }]
 };
 
@@ -77,7 +78,7 @@ const renderChart = () => {
   const showValue = props.element.props?.custom_showValue !== false;
   const showPercent = props.element.props?.custom_showPercent !== false;
 
-  const generatedSeries = Array.from({ length: numSeries }).map(() => {
+  const generatedSeries = Array.from({ length: numSeries }).map((_, index) => {
     const s: any = {
       type: seriesType,
       seriesLayoutBy: layoutBy
@@ -85,6 +86,10 @@ const renderChart = () => {
     
     // Auto-show percentage for charts that natively support it ({d})
     if (seriesType === 'pie' || seriesType === 'funnel') {
+      s.encode = {
+        itemName: 0,
+        value: index + 1
+      };
       s.label = {
         show: true,
         formatter: function(params: any) {

@@ -17,6 +17,7 @@ export default {
       labelSettings: 'Label Settings',
       showValue: 'Show Value',
       showPercent: 'Show Percentage (Pie/Funnel Only)',
+      showLegend: 'Show Legend (Color Content)',
       multiSeriesConfig: 'Multi-Series Independent Configuration',
       seriesPrefix: 'Series {index}',
       seriesType: 'Chart Type',

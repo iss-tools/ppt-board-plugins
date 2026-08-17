@@ -28,6 +28,7 @@
               <n-space vertical :size="8">
                 <n-checkbox v-model:checked="showLabelValue">{{ t('echarts.settings.showValue') }}</n-checkbox>
                 <n-checkbox v-model:checked="showLabelPercent" :disabled="!isPercentSupported">{{ t('echarts.settings.showPercent') }}</n-checkbox>
+                <n-checkbox v-model:checked="showLegend">{{ t('echarts.settings.showLegend') }}</n-checkbox>
               </n-space>
             </n-space>
           </div>
@@ -197,6 +198,31 @@ const showLabelPercent = computed({
       props: {
         ...selectedElement.value.props,
         custom_showPercent: val
+      }
+    });
+  }
+});
+
+const showLegend = computed({
+  get: () => {
+    if (!selectedElement.value) return true;
+    const opt: any = selectedElement.value.props?.echartsOption;
+    return opt?.legend?.show !== false;
+  },
+  set: (val: boolean) => {
+    if (!selectedElement.value) return;
+    const currentOption: any = selectedElement.value.props?.echartsOption || {};
+    
+    ctx.api.elements.update(selectedElement.value.id, {
+      props: {
+        ...selectedElement.value.props,
+        echartsOption: {
+          ...currentOption,
+          legend: {
+            ...(currentOption.legend || { bottom: 0 }),
+            show: val
+          }
+        }
       }
     });
   }

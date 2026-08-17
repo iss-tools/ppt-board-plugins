@@ -17,6 +17,7 @@ export default {
       labelSettings: '标签显示设置',
       showValue: '显示数值',
       showPercent: '显示占比 (仅饼图/漏斗图)',
+      showLegend: '显示颜色对应的内容 (图例)',
       multiSeriesConfig: '多系列独立配置',
       seriesPrefix: '系列 {index}',
       seriesType: '图表类型',
