@@ -1,9 +1,9 @@
 <template>
   <div style="height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column;">
-    <div style="padding: 10px; background: #333; color: white;">
+    <!-- <div style="padding: 10px; background: #333; color: white;">
       <h3>Vue Canvas Plugin Example</h3>
       <p style="font-size: 12px; margin: 0;">Open console to see plugin event logs</p>
-    </div>
+    </div> -->
     <div style="flex: 1; position: relative;">
       <VueCanvasEditor ref="editorRef" />
     </div>
@@ -26,7 +26,7 @@ const loadNormalData = () => {
 };
 onMounted(() => {
   if (editorRef.value) {
-    loadNormalData()
+    // loadNormalData()
     editorRef.value.usePlugin?.(MenuPlugin);
   }
 });

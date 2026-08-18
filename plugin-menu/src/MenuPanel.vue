@@ -2,6 +2,8 @@
   <div class="menu-plugin-container">
     <input ref="fileInputRef" type="file" accept=".json,application/json" multiple style="display: none"
       @change="handleFileChange" />
+    <input ref="pptxInputRef" type="file" accept=".pptx" style="display: none"
+      @change="handlePptxChange" />
     <n-config-provider :theme="isDark ? darkTheme : null">
       <div style="display: flex; gap: 8px; align-items: center;">
         <n-dropdown v-if="!isSearchActive" trigger="click" :options="menuOptions" @select="handleSelect"
@@ -53,12 +55,15 @@ import ColorPickerPanel from './components/ColorPickerPanel.vue';
 import CanvasSettingsPanel from './components/CanvasSettingsPanel.vue';
 import HelpModal from './components/HelpModal.vue';
 import { useI18n } from './composables/useI18n';
+import { importPptx } from './utils/pptx-import';
+import { exportPptx } from './utils/pptx-export';
 
 const ctx = useCanvasContext();
 const pptStore = useEasyStore('documents');
 const { t } = useI18n();
 const isDark = computed(() => ctx.state.editor?.theme === 'dark');
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const pptxInputRef = ref<HTMLInputElement | null>(null);
 const isHelpOpen = ref(false);
 
 const { dialog, message } = createDiscreteApi(['dialog', 'message'], {
@@ -144,6 +149,16 @@ const menuOptions = computed(() => [
     key: 'export',
     icon: renderRawIcon(`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`),
     extra: 'Cmd+Shift+E'
+  },
+  {
+    label: t('menu.importPptx') || '导入 PPTX',
+    key: 'import_pptx',
+    icon: renderRawIcon(`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`)
+  },
+  {
+    label: t('menu.exportPptx') || '导出 PPTX',
+    key: 'export_pptx',
+    icon: renderRawIcon(`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`)
   },
   {
     label: t('menu.exportAll'),
@@ -453,6 +468,36 @@ const handleFileChange = async (e: Event) => {
   }
 };
 
+const handlePptxChange = async (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const files = input.files;
+  if (!files || files.length === 0) return;
+
+  try {
+    message.info('正在解析 PPTX，这可能需要一点时间...');
+    const documentData = await importPptx(files[0]);
+    const saved = await pptStore.save(documentData);
+    
+    if (ctx.api?.project?.load) {
+      documentData.id = saved.id;
+      ctx.api.project.load(documentData);
+      if (ctx.state.document) {
+        ctx.state.document.id = saved.id;
+      }
+    }
+    message.success('PPTX 导入成功');
+  } catch (err) {
+    console.error('[MenuPanel] Failed to import PPTX:', err);
+    dialog.error({
+      title: '导入失败',
+      content: 'PPTX 解析失败，请检查文件格式。',
+      positiveText: '确定'
+    });
+  } finally {
+    if (pptxInputRef.value) pptxInputRef.value.value = '';
+  }
+};
+
 const handleSelect = (key: string | number) => {
   if (key === 'open') {
     fileInputRef.value?.click();
@@ -469,6 +514,17 @@ const handleSelect = (key: string | number) => {
     }
   } else if (key === 'export') {
     ctx.api?.project?.export?.({ format: 'png', download: true });
+  } else if (key === 'import_pptx') {
+    pptxInputRef.value?.click();
+  } else if (key === 'export_pptx') {
+    if (ctx.state?.document) {
+      message.info('正在导出 PPTX...');
+      exportPptx(ctx.state.document).then(() => {
+         message.success('PPTX 导出成功');
+      }).catch(err => {
+         message.error('导出失败: ' + (err as Error).message);
+      });
+    }
   } else if (key === 'export_all_db') {
     pptStore.getList().then(allData => {
       if (!allData || allData.length === 0) {
