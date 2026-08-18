@@ -1139,6 +1139,13 @@ const updateRoughProp = (key: string, value: any) => {
   if (!pluginApi || !pluginApi.elements || !pluginApi.elements.update) return;
   commonProps.value[key] = value;
 
+  if (canvasState && canvasState.editor) {
+    if (!canvasState.editor.defaultRoughProps) {
+      canvasState.editor.defaultRoughProps = {};
+    }
+    canvasState.editor.defaultRoughProps[key] = value;
+  }
+
   selectedElements.value.forEach(el => {
     // Only apply rough props to rough shapes
     if (
@@ -1185,6 +1192,14 @@ const updateRoughImageFill = (val: string) => {
   const rawUrl = val.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
   commonProps.value.fillImage = rawUrl;
   commonProps.value.fillStyle = 'image';
+
+  if (canvasState && canvasState.editor) {
+    if (!canvasState.editor.defaultRoughProps) {
+      canvasState.editor.defaultRoughProps = {};
+    }
+    canvasState.editor.defaultRoughProps.fillImage = rawUrl;
+    canvasState.editor.defaultRoughProps.fillStyle = 'image';
+  }
 
   selectedElements.value.forEach(el => {
     if (['RoughElement', 'RoughShape', 'rect', 'circle', 'ellipse', 'line', 'polygon', 'path'].includes(el.type)) {
