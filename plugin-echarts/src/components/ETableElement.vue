@@ -50,6 +50,8 @@ const wrapperStyle = computed(() => {
     overflow: 'auto',
     backgroundColor: (props.element.props?.backgroundColor as string) || (isDark.value ? 'transparent' : '#ffffff'),
     color: (props.element.props?.color as string) || (isDark.value ? '#e0e0e0' : '#333333'),
+    fontFamily: (props.element.props?.fontFamily as string) || 'sans-serif',
+    fontSize: props.element.props?.fontSize ? `${props.element.props.fontSize}px` : '14px',
   };
 });
 
@@ -114,8 +116,8 @@ const onCellBlur = (e: Event, rIdx: number, cIdx: number) => {
 .etable {
   width: 100%;
   border-collapse: collapse;
-  font-family: sans-serif;
-  font-size: 14px;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .etable th,
@@ -127,16 +129,12 @@ const onCellBlur = (e: Event, rIdx: number, cIdx: number) => {
 }
 
 .etable th {
-  background-color: #f2f2f2;
+  background-color: rgba(0, 0, 0, 0.05);
   font-weight: bold;
 }
 
-.etable tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
 .etable tr:hover {
-  background-color: #f1f1f1;
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 /* Dark Theme Overrides */
@@ -146,15 +144,11 @@ const onCellBlur = (e: Event, rIdx: number, cIdx: number) => {
 }
 
 .vue-canvas-etable-element.dark .etable th {
-  background-color: #333333;
-  color: #eeeeee;
-}
-
-.vue-canvas-etable-element.dark .etable tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: inherit;
 }
 
 .vue-canvas-etable-element.dark .etable tr:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 </style>
