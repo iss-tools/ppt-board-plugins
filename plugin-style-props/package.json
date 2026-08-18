@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-style-props",
   "description": "Comprehensive properties inspector, timeline, and animation editor.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "iss-tools",
   "keywords": [
     "utils",
