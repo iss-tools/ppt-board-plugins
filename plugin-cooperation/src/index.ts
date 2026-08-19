@@ -12,7 +12,7 @@ export function createCooperationPlugin(options?: CooperationPluginOptions): Can
   return {
     name: 'plugin-cooperation',
     install(ctx: CanvasPluginContext) {
-      console.log('[CooperationPlugin] 🚀 Plugin Installed Successfully! Options:', options);
+      console.log('[CooperationPlugin] 🚀 Plugin Installed Successfully! Options:');
 
       // Initialize state store
       initStore(ctx, options);

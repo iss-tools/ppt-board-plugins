@@ -1,5 +1,5 @@
 <template>
-  <div class="bottom-right-help" :class="{ dark: isDarkTheme }">
+  <div v-show="!canvasState?.runtime?.isMobile" class="bottom-right-help" :class="{ dark: isDarkTheme }">
     <button class="icon-btn" @click="toggleFullscreen" :title="t('settings.fullscreen')">
       <svg v-if="!isFullscreen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -40,6 +40,7 @@ import { useI18n } from '../composables/useI18n';
 
 const ctx = useCanvasContext();
 const { t } = useI18n();
+const canvasState = ctx.state;
 
 const isHelpOpen = ref(false);
 

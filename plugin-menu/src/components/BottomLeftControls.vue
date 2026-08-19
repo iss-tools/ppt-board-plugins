@@ -1,5 +1,5 @@
 <template>
-  <div class="bottom-left-controls" :class="{ dark: isDarkTheme }">
+  <div v-show="!canvasState?.runtime?.isMobile" class="bottom-left-controls" :class="{ dark: isDarkTheme }">
     <!-- Zoom Controls -->
     <div class="control-group">
       <button class="icon-btn" @click="zoomOut" :title="t('controls.zoomOut')">

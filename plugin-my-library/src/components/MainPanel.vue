@@ -1,28 +1,89 @@
 <template>
   <div class="my-library-overlay">
     <!-- 悬浮的入口按钮 -->
-    <button class="library-toggle-btn" :class="{ dark: isDarkTheme }"
-      @click="pluginState.isPanelVisible = !pluginState.isPanelVisible" :title="t('libraryTitle')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
+    <button
+      class="library-toggle-btn"
+      :class="{ dark: isDarkTheme }"
+      @click="pluginState.isPanelVisible = !pluginState.isPanelVisible"
+      :title="t('libraryTitle')"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
       </svg>
     </button>
 
     <!-- 面板本身 -->
-    <div v-show="pluginState.isPanelVisible" class="my-library-panel" :class="{ dark: isDarkTheme }">
+    <div
+      v-show="pluginState.isPanelVisible"
+      class="my-library-panel"
+      :class="{ dark: isDarkTheme }"
+    >
       <div class="panel-header-icons">
         <div class="header-left">
-          <button class="icon-tab-btn" :class="{ active: activeMainTab === 'search' }" @click="activeMainTab = 'search'" title="图标库">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <button
+            class="icon-tab-btn"
+            :class="{ active: activeMainTab === 'search' }"
+            @click="activeMainTab = 'search'"
+            title="图标库"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
           </button>
-          <button class="icon-tab-btn" :class="{ active: activeMainTab === 'library' }" @click="activeMainTab = 'library'" :title="t('libraryTitle')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+          <button
+            class="icon-tab-btn"
+            :class="{ active: activeMainTab === 'library' }"
+            @click="activeMainTab = 'library'"
+            :title="t('libraryTitle')"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+            </svg>
           </button>
         </div>
         <div class="header-right">
           <button class="close-btn" @click="pluginState.isPanelVisible = false">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
       </div>
@@ -30,16 +91,54 @@
       <div class="library-toolbar" v-show="activeMainTab === 'library'">
         <div class="search-bar-wrap">
           <div class="search-input">
-            <n-input v-model:value="searchQuery" :placeholder="t('searchPlaceholder')" clearable size="small" style="width: 100%">
+            <n-input
+              v-model:value="searchQuery"
+              :placeholder="t('searchPlaceholder')"
+              clearable
+              size="small"
+              style="width: 100%"
+            >
               <template #prefix>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
               </template>
             </n-input>
           </div>
-          <n-dropdown trigger="click" :options="dropdownOptions" @select="handleDropdownSelect" placement="bottom-end">
+          <n-dropdown
+            trigger="click"
+            :options="dropdownOptions"
+            @select="handleDropdownSelect"
+            placement="bottom-end"
+          >
             <button class="more-btn" :disabled="selectedItemIds.length === 0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-              <span v-if="selectedItemIds.length > 0" class="badge">{{ selectedItemIds.length }}</span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+              </svg>
+              <span v-if="selectedItemIds.length > 0" class="badge">{{
+                selectedItemIds.length
+              }}</span>
             </button>
           </n-dropdown>
         </div>
@@ -49,10 +148,22 @@
         <!-- 个人组件区域 -->
         <div class="section-header">
           <h3 class="section-title">{{ t('libraryTitle') }}</h3>
-          <button v-if="hasCanvasSelection" class="add-btn" :title="t('addSelectionTitle')"
-            @click="saveCurrentSelection">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
+          <button
+            v-if="hasCanvasSelection"
+            class="add-btn"
+            :title="t('addSelectionTitle')"
+            @click="saveCurrentSelection"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
@@ -64,8 +175,14 @@
           {{ t('emptyPersonal') }}
         </div>
         <div class="grid-container" v-else>
-          <LibraryItem v-for="item in filteredPersonal" :key="item.id!" :item="item"
-            :isSelected="selectedItemIds.includes(item.id!)" @toggle-select="toggleSelect" @insert="handleInsert" />
+          <LibraryItem
+            v-for="item in filteredPersonal"
+            :key="item.id!"
+            :item="item"
+            :isSelected="selectedItemIds.includes(item.id!)"
+            @toggle-select="toggleSelect"
+            @insert="handleInsert"
+          />
         </div>
 
         <div class="divider"></div>
@@ -81,30 +198,62 @@
           <div v-for="(items, pkgName) in groupedImported" :key="pkgName" class="imported-group">
             <div class="group-header" @click="togglePackage(pkgName as string)">
               <div class="group-header-left">
-                <svg class="chevron-icon" :class="{ 'is-collapsed': collapsedPackages.includes(pkgName as string) }"
-                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  class="chevron-icon"
+                  :class="{ 'is-collapsed': collapsedPackages.includes(pkgName as string) }"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
                 <span class="group-title">{{ pkgName }}</span>
               </div>
-              <button class="delete-pkg-btn" @click.stop="deletePackage(pkgName as string)"
-                :title="t('deletePackageTitle')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <button
+                class="delete-pkg-btn"
+                @click.stop="deletePackage(pkgName as string)"
+                :title="t('deletePackageTitle')"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M3 6h18"></path>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  ></path>
                 </svg>
               </button>
             </div>
             <div class="grid-container" v-show="!collapsedPackages.includes(pkgName as string)">
-              <LibraryItem v-for="item in items" :key="item.id!" :item="item"
-                :isSelected="selectedItemIds.includes(item.id!)" @toggle-select="toggleSelect" @insert="handleInsert" />
+              <LibraryItem
+                v-for="item in items"
+                :key="item.id!"
+                :item="item"
+                :isSelected="selectedItemIds.includes(item.id!)"
+                @toggle-select="toggleSelect"
+                @insert="handleInsert"
+              />
             </div>
           </div>
         </div>
       </div>
 
       <div class="panel-content iframe-content" v-if="activeMainTab === 'search'">
-        <iframe src="https://xicons.org/" frameborder="0" width="100%" height="100%" allow="clipboard-read; clipboard-write"></iframe>
+        <iframe
+          src="https://xicons.org/"
+          frameborder="0"
+          width="100%"
+          height="100%"
+          allow="clipboard-read; clipboard-write"
+        ></iframe>
       </div>
 
       <div class="panel-footer" v-show="activeMainTab === 'library'">
@@ -112,7 +261,8 @@
           {{ t('browseLibrary') }}
         </button>
       </div>
-    </div> <!-- Close my-library-panel -->
+    </div>
+    <!-- Close my-library-panel -->
 
     <!-- Material Drawer -->
     <MaterialDrawer />
@@ -123,7 +273,14 @@
 import { ref, computed, h } from 'vue';
 import { NInput, NDropdown, useMessage } from 'naive-ui';
 import { useCanvasContext } from '@iss-ai/ppt-board';
-import { pluginState, personalComponents, importedComponents, addPersonalComponent, deletePersonalComponent, deleteImportedComponent } from '../store';
+import {
+  pluginState,
+  personalComponents,
+  importedComponents,
+  addPersonalComponent,
+  deletePersonalComponent,
+  deleteImportedComponent,
+} from '../store';
 import { useI18n } from '../composables/useI18n';
 import LibraryItem from './LibraryItem.vue';
 import MaterialDrawer from './MaterialDrawer.vue';
@@ -181,10 +338,10 @@ const dropdownOptions = computed(() => [
     key: 'delete',
     icon: () => {
       return h('span', {
-        innerHTML: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`
+        innerHTML: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
       });
-    }
-  }
+    },
+  },
 ]);
 
 const deleteSelected = () => {
@@ -199,7 +356,9 @@ const deleteSelected = () => {
 };
 
 const deletePackage = (pkgName: string) => {
-  const itemsToDelete = importedComponents.value.filter(c => (c.packageName || t('unnamedLibrary')) === pkgName);
+  const itemsToDelete = importedComponents.value.filter(
+    c => (c.packageName || t('unnamedLibrary')) === pkgName
+  );
   itemsToDelete.forEach(item => {
     if (item.id) deleteImportedComponent(item.id);
   });
@@ -240,7 +399,9 @@ const saveCurrentSelection = () => {
 };
 
 const handleInsert = (itemId: string) => {
-  const item = personalComponents.value.find(c => c.id === itemId) || importedComponents.value.find(c => c.id === itemId);
+  const item =
+    personalComponents.value.find(c => c.id === itemId) ||
+    importedComponents.value.find(c => c.id === itemId);
   if (!item) return;
 
   try {
@@ -259,7 +420,10 @@ const handleInsert = (itemId: string) => {
     const centerY = (viewportHeight / 2 - offsetY) / scale;
 
     // Calculate group bounding box center offset
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     elementsToInsert.forEach((el: any) => {
       minX = Math.min(minX, el.x || 0);
       minY = Math.min(minY, el.y || 0);
@@ -273,7 +437,10 @@ const handleInsert = (itemId: string) => {
     const baseOffsetX = centerX - groupW / 2;
     const baseOffsetY = centerY - groupH / 2;
 
-    const newGroupId = elementsToInsert.length > 1 ? `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` : undefined;
+    const newGroupId =
+      elementsToInsert.length > 1
+        ? `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        : undefined;
 
     elementsToInsert.forEach((el: any) => {
       el.id = `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -347,7 +514,7 @@ const handleInsert = (itemId: string) => {
   right: 64px;
   /* Left of the toggle button */
   width: 300px;
-  height: calc(100vh - 32px);
+  height: calc(100vh - 96px);
   background: var(--canvas-panel-bg, #ffffff);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -355,7 +522,10 @@ const handleInsert = (itemId: string) => {
   flex-direction: column;
   border: 1px solid var(--canvas-border-color, #e9ecef);
   overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   pointer-events: auto;
   z-index: 999;
 }

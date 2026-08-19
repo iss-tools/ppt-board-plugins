@@ -1,6 +1,10 @@
 <template>
-  <n-config-provider v-if="isVisible" class="plugin-style-props-overlay" :theme="isDarkTheme ? darkTheme : null"
-    :class="{ dark: isDarkTheme }">
+  <n-config-provider
+    v-if="isVisible"
+    class="plugin-style-props-overlay"
+    :theme="isDarkTheme ? darkTheme : null"
+    :class="{ dark: isDarkTheme }"
+  >
     <div class="panel-container" @mousedown.stop @touchstart.stop>
       <n-tabs type="segment" animated>
         <n-tab-pane name="style" :tab="t('main.style')">
@@ -46,7 +50,7 @@ const allElements = computed(() => {
   return state.runtime.activeElements || [];
 });
 
-const isVisible = computed(() => selectedElements.value.length > 0);
+const isVisible = computed(() => selectedElements.value.length > 0 && !state.runtime.isDragging);
 </script>
 
 <style scoped>
@@ -55,7 +59,7 @@ const isVisible = computed(() => selectedElements.value.length > 0);
   left: 16px;
   top: 16px;
   width: 335px;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 96px);
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

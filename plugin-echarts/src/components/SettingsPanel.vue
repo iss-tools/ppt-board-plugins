@@ -1,6 +1,11 @@
 <template>
-  <n-config-provider v-if="isVisible" class="plugin-echarts-settings-overlay" :theme="isDarkTheme ? darkTheme : null"
-    :class="{ dark: isDarkTheme }" :style="panelStyle">
+  <n-config-provider
+    v-if="isVisible"
+    class="plugin-echarts-settings-overlay"
+    :theme="isDarkTheme ? darkTheme : null"
+    :class="{ dark: isDarkTheme }"
+    :style="panelStyle"
+  >
     <div class="panel-container" @mousedown.stop @touchstart.stop>
       <n-tabs type="segment" animated>
         <!-- Chart Settings Tab -->
@@ -10,25 +15,46 @@
               <n-text depth="3">{{ t('echarts.settings.basicSettings') }}</n-text>
               <div class="prop-item">
                 <span class="prop-label">{{ t('echarts.settings.chartType') }}</span>
-                <n-select v-model:value="globalChartType" :options="chartTypeOptions" size="small" style="width: 140px;" />
+                <n-select
+                  v-model:value="globalChartType"
+                  :options="chartTypeOptions"
+                  size="small"
+                  style="width: 140px"
+                />
               </div>
-              <n-text depth="3" style="margin-top: 12px;">{{ t('echarts.settings.dataMapping') }}</n-text>
+              <n-text depth="3" style="margin-top: 12px">{{
+                t('echarts.settings.dataMapping')
+              }}</n-text>
               <n-radio-group v-model:value="seriesLayoutBy" name="layoutByGroup">
                 <n-space vertical>
                   <n-radio value="column">
-                    {{ t('echarts.settings.mapByColumn') }} <n-text depth="3" style="font-size: 12px">{{ t('echarts.settings.colAsX') }}</n-text>
+                    {{ t('echarts.settings.mapByColumn') }}
+                    <n-text depth="3" style="font-size: 12px">{{
+                      t('echarts.settings.colAsX')
+                    }}</n-text>
                   </n-radio>
                   <n-radio value="row">
-                    {{ t('echarts.settings.mapByRow') }} <n-text depth="3" style="font-size: 12px">{{ t('echarts.settings.rowAsX') }}</n-text>
+                    {{ t('echarts.settings.mapByRow') }}
+                    <n-text depth="3" style="font-size: 12px">{{
+                      t('echarts.settings.rowAsX')
+                    }}</n-text>
                   </n-radio>
                 </n-space>
               </n-radio-group>
-              
-              <n-text depth="3" style="margin-top: 12px;">{{ t('echarts.settings.labelSettings') }}</n-text>
+
+              <n-text depth="3" style="margin-top: 12px">{{
+                t('echarts.settings.labelSettings')
+              }}</n-text>
               <n-space vertical :size="8">
-                <n-checkbox v-model:checked="showLabelValue">{{ t('echarts.settings.showValue') }}</n-checkbox>
-                <n-checkbox v-model:checked="showLabelPercent" :disabled="!isPercentSupported">{{ t('echarts.settings.showPercent') }}</n-checkbox>
-                <n-checkbox v-model:checked="showLegend">{{ t('echarts.settings.showLegend') }}</n-checkbox>
+                <n-checkbox v-model:checked="showLabelValue">{{
+                  t('echarts.settings.showValue')
+                }}</n-checkbox>
+                <n-checkbox v-model:checked="showLabelPercent" :disabled="!isPercentSupported">{{
+                  t('echarts.settings.showPercent')
+                }}</n-checkbox>
+                <n-checkbox v-model:checked="showLegend">{{
+                  t('echarts.settings.showLegend')
+                }}</n-checkbox>
               </n-space>
             </n-space>
           </div>
@@ -38,7 +64,7 @@
         <n-tab-pane name="data" :tab="t('echarts.settings.dataEditTab')">
           <div class="settings-group">
             <n-space vertical>
-              <n-text depth="3" style="font-size: 12px; margin-bottom: 8px;">
+              <n-text depth="3" style="font-size: 12px; margin-bottom: 8px">
                 {{ t('echarts.settings.dataPasteTip') }}
               </n-text>
               <n-input
@@ -46,10 +72,12 @@
                 type="textarea"
                 :rows="10"
                 placeholder=""
-                style="font-family: monospace; font-size: 12px; white-space: pre;"
+                style="font-family: monospace; font-size: 12px; white-space: pre"
                 @blur="onDataUpdate"
               />
-              <n-button type="primary" size="small" block @click="onDataUpdate">{{ t('echarts.settings.applyData') }}</n-button>
+              <n-button type="primary" size="small" block @click="onDataUpdate">{{
+                t('echarts.settings.applyData')
+              }}</n-button>
             </n-space>
           </div>
         </n-tab-pane>
@@ -60,7 +88,22 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { NConfigProvider, NTabs, NTabPane, NSpace, NText, NSelect, NInput, NButton, NRadioGroup, NRadio, NCheckbox, darkTheme, NCollapse, NCollapseItem } from 'naive-ui';
+import {
+  NConfigProvider,
+  NTabs,
+  NTabPane,
+  NSpace,
+  NText,
+  NSelect,
+  NInput,
+  NButton,
+  NRadioGroup,
+  NRadio,
+  NCheckbox,
+  darkTheme,
+  NCollapse,
+  NCollapseItem,
+} from 'naive-ui';
 import { useCanvasContext } from '@iss-ai/ppt-board';
 import { useI18n } from '../composables/useI18n';
 
@@ -81,7 +124,10 @@ const selectedElement = computed(() => {
 });
 
 const isVisible = computed(() => {
-  return selectedElement.value !== null && (selectedElement.value.type === 'echarts' || selectedElement.value.type === 'etable');
+  return (
+    selectedElement.value !== null &&
+    (selectedElement.value.type === 'echarts' || selectedElement.value.type === 'etable')
+  );
 });
 
 const panelStyle = computed(() => {
@@ -89,23 +135,23 @@ const panelStyle = computed(() => {
   if (!el || !isVisible.value) return {};
 
   const { scale, offsetX, offsetY, width } = ctx.state.runtime;
-  
+
   // Calculate position: right side of the element
   let left = (el.x + (el.width || 300)) * scale + offsetX + 16;
   let top = el.y * scale + offsetY;
-  
+
   const panelWidth = 280;
-  
+
   // Flip to left side if it overflows the canvas container's right edge
   if (left + panelWidth > width) {
     left = el.x * scale + offsetX - panelWidth - 16;
   }
-  
+
   return {
     left: `${left}px`,
     top: `${Math.max(16, top)}px`,
     right: 'auto',
-    bottom: 'auto'
+    bottom: 'auto',
   };
 });
 
@@ -134,22 +180,23 @@ const globalChartType = computed({
   set: (newType: string) => {
     if (!selectedElement.value) return;
     const currentOption: any = selectedElement.value.props?.echartsOption || { series: [] };
-    
+
     // We update the first series (or all existing series) to this type
-    const newSeries = Array.isArray(currentOption.series) && currentOption.series.length > 0
-      ? currentOption.series.map((s: any) => ({ ...s, type: newType }))
-      : [{ type: newType }];
-      
+    const newSeries =
+      Array.isArray(currentOption.series) && currentOption.series.length > 0
+        ? currentOption.series.map((s: any) => ({ ...s, type: newType }))
+        : [{ type: newType }];
+
     ctx.api.elements.update(selectedElement.value.id, {
       props: {
         ...selectedElement.value.props,
         echartsOption: {
           ...currentOption,
-          series: newSeries
-        }
-      }
+          series: newSeries,
+        },
+      },
     });
-  }
+  },
 });
 
 const seriesLayoutBy = computed({
@@ -160,17 +207,17 @@ const seriesLayoutBy = computed({
   set: (newLayout: string) => {
     if (!selectedElement.value) return;
     const currentOption = selectedElement.value.props?.echartsOption || {};
-    
+
     ctx.api.elements.update(selectedElement.value.id, {
       props: {
         ...selectedElement.value.props,
         echartsOption: {
           ...currentOption,
-          seriesLayoutBy: newLayout
-        }
-      }
+          seriesLayoutBy: newLayout,
+        },
+      },
     });
-  }
+  },
 });
 
 const isPercentSupported = computed(() => {
@@ -184,10 +231,10 @@ const showLabelValue = computed({
     ctx.api.elements.update(selectedElement.value.id, {
       props: {
         ...selectedElement.value.props,
-        custom_showValue: val
-      }
+        custom_showValue: val,
+      },
     });
-  }
+  },
 });
 
 const showLabelPercent = computed({
@@ -197,10 +244,10 @@ const showLabelPercent = computed({
     ctx.api.elements.update(selectedElement.value.id, {
       props: {
         ...selectedElement.value.props,
-        custom_showPercent: val
-      }
+        custom_showPercent: val,
+      },
     });
-  }
+  },
 });
 
 const showLegend = computed({
@@ -212,7 +259,7 @@ const showLegend = computed({
   set: (val: boolean) => {
     if (!selectedElement.value) return;
     const currentOption: any = selectedElement.value.props?.echartsOption || {};
-    
+
     ctx.api.elements.update(selectedElement.value.id, {
       props: {
         ...selectedElement.value.props,
@@ -220,36 +267,40 @@ const showLegend = computed({
           ...currentOption,
           legend: {
             ...(currentOption.legend || { bottom: 0 }),
-            show: val
-          }
-        }
-      }
+            show: val,
+          },
+        },
+      },
     });
-  }
+  },
 });
 
 const rawData = ref('');
 
 // Parse dataset.source into TSV text when selection changes
-watch(selectedElement, (newEl) => {
-  if (newEl && (newEl.props?.dataset as any)?.source) {
-    const source = (newEl.props!.dataset as any).source as any[][];
-    rawData.value = source.map(row => row.join('\t')).join('\n');
-  } else {
-    rawData.value = '';
-  }
-}, { immediate: true });
+watch(
+  selectedElement,
+  newEl => {
+    if (newEl && (newEl.props?.dataset as any)?.source) {
+      const source = (newEl.props!.dataset as any).source as any[][];
+      rawData.value = source.map(row => row.join('\t')).join('\n');
+    } else {
+      rawData.value = '';
+    }
+  },
+  { immediate: true }
+);
 
 const onDataUpdate = () => {
   if (!selectedElement.value) return;
   const lines = rawData.value.split('\n');
   const source = lines.map(line => line.split('\t').map(cell => cell.trim()));
-  
+
   ctx.api.elements.update(selectedElement.value.id, {
     props: {
       ...selectedElement.value.props,
-      dataset: { source }
-    }
+      dataset: { source },
+    },
   });
 };
 </script>
@@ -260,7 +311,7 @@ const onDataUpdate = () => {
   right: 360px; /* offset from the standard properties panel */
   top: 16px;
   width: 280px;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 96px);
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
