@@ -63,6 +63,7 @@ export default {
     custom: 'Custom',
     zoom: 'Zoom Level',
     fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
     autoStep: 'Auto Step (PPT)',
     roughToolbar: 'Rough Style Toolbar',
     rulers: 'Show Rulers',

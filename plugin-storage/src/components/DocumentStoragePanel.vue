@@ -714,6 +714,21 @@ onUnmounted(() => {
   gap: 16px;
 }
 
+.doc-title-btn {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .doc-title-btn {
+    max-width: 80px;
+  }
+}
+
 .doc-dropdown-btn {
   max-width: 150px;
   overflow: hidden;
@@ -784,6 +799,12 @@ onUnmounted(() => {
 
 .doc-item:hover .doc-actions {
   opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .doc-actions {
+    opacity: 1;
+  }
 }
 
 .no-docs {

@@ -63,6 +63,7 @@ export default {
     custom: '自定义',
     zoom: '缩放比例',
     fullscreen: '全屏显示',
+    exitFullscreen: '退出全屏',
     autoStep: '自动计算步骤 (PPT)',
     roughToolbar: '手绘风格工具栏',
     rulers: '显示标尺',
