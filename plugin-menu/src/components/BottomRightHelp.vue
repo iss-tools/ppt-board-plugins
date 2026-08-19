@@ -80,15 +80,27 @@ const isFullscreen = ref(!!document.fullscreenElement);
 
 const toggleFullscreen = () => {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().then(() => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().then(() => {
+        isFullscreen.value = true;
+        ctx.api?.editor?.setParams?.({ fullScreen: true });
+      }).catch(() => {});
+    } else if ((document.documentElement as any).webkitRequestFullscreen) {
+      (document.documentElement as any).webkitRequestFullscreen();
       isFullscreen.value = true;
       ctx.api?.editor?.setParams?.({ fullScreen: true });
-    }).catch(() => {});
+    }
   } else {
-    document.exitFullscreen().then(() => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().then(() => {
+        isFullscreen.value = false;
+        ctx.api?.editor?.setParams?.({ fullScreen: false });
+      }).catch(() => {});
+    } else if ((document as any).webkitExitFullscreen) {
+      (document as any).webkitExitFullscreen();
       isFullscreen.value = false;
       ctx.api?.editor?.setParams?.({ fullScreen: false });
-    }).catch(() => {});
+    }
   }
 };
 
