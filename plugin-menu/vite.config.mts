@@ -23,11 +23,13 @@ export default defineConfig({
       formats: ['es', 'cjs', 'umd', 'iife'],
     },
     rollupOptions: {
-      external: ['@iss-ai/ppt-board', 'vue', 'naive-ui'],
+      external: ['@iss-ai/ppt-board', 'vue', 'naive-ui', 'pptxgenjs', '@aiden0z/pptx-renderer'],
       output: {
         globals: {
           vue: 'Vue',
           '@iss-ai/ppt-board': 'PptBoard',
+          'pptxgenjs': 'pptxgen',
+          '@aiden0z/pptx-renderer': 'pptxRenderer',
         }
       }
     }

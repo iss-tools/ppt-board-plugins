@@ -513,7 +513,7 @@ const handleSelect = (key: string | number) => {
       URL.revokeObjectURL(url);
     }
   } else if (key === 'export') {
-    ctx.api?.project?.export?.({ format: 'png', download: true });
+    ctx.api?.project?.export?.({ format: 'jpeg', quality: 0.85, download: true });
   } else if (key === 'import_pptx') {
     pptxInputRef.value?.click();
   } else if (key === 'export_pptx') {

@@ -3,6 +3,8 @@ export default {
     open: '打开',
     saveTo: '保存到...',
     export: '导出图片...',
+    importPptx: '导入 PPTX',
+    exportPptx: '导出 PPTX',
     exportAll: '导出所有数据',
     settings: '画布高级设置',
     canvasBg: '画布背景',

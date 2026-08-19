@@ -3,6 +3,8 @@ export default {
     open: 'Open',
     saveTo: 'Save to...',
     export: 'Export image...',
+    importPptx: 'Import PPTX',
+    exportPptx: 'Export PPTX',
     exportAll: 'Export All Data',
     settings: 'Canvas Settings',
     canvasBg: 'Canvas background',
