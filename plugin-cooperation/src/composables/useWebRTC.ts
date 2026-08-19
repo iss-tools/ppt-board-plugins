@@ -88,10 +88,8 @@ export function useWebRTC(onDataReceived: (clientId: string, data: any) => void)
     const peer = getOrCreatePeer(clientId, sendOffer, sendCandidate);
     
     // Create data channel (we are the offerer)
-    const dataChannel = peer.pc.createDataChannel('ppt-board-sync', {
-      ordered: false,
-      maxRetransmits: 0 // Unreliable for low latency
-    });
+    // Use reliable ordered delivery (default) because element state sync MUST not drop or reorder packets
+    const dataChannel = peer.pc.createDataChannel('ppt-board-sync');
     setupDataChannel(peer, dataChannel);
 
     const offer = await peer.pc.createOffer();

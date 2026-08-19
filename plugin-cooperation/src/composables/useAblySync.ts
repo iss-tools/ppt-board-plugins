@@ -234,8 +234,10 @@ export function useAblySync(ctx: CanvasPluginContext, options?: { useP2P?: boole
       // --- Full State Sync (New Join & Undo/Redo) ---
       channel.subscribe('request-full-state', (msg) => {
         if (!msg.clientId || msg.clientId === mySenderId) return;
-        // The host (or everyone) replies with the current state to the requester
-        if (Object.keys(remoteUsers.value).length === 0 || mySenderId < msg.clientId) {
+        // Reply if I am the "host" (smallest ID among everyone except the requester)
+        const allIds = [mySenderId, ...Object.keys(remoteUsers.value)].filter(id => id !== msg.clientId);
+        allIds.sort();
+        if (allIds.length === 0 || allIds[0] === mySenderId) {
           channel!.publish('sync-full-state', { 
             target: msg.clientId, 
             elements: ctx.state.runtime.activeElements,
