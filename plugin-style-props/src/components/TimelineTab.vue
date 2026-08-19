@@ -13,7 +13,28 @@
              draggable="true"
              @dragstart="onDragStart($event, el.id)"
              @click="selectElement(el.id)">
-          {{ el.type }} - {{ el.id.substring(0, 8) }}
+          <span class="el-name">{{ el.type }} - {{ el.id.substring(0, 8) }}</span>
+          <div class="el-actions">
+            <button class="action-btn" @click.stop="randomAnimation($event, el)" :title="t('tabs.random_enter_effect') || '随机入场动画'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 3h5v5"></path>
+                <path d="M4 20L21 3"></path>
+                <path d="M21 16v5h-5"></path>
+                <path d="M15 15l6 6"></path>
+                <path d="M4 4l5 5"></path>
+              </svg>
+            </button>
+            <button class="action-btn" @click.stop="setPrevStep($event, el)" title="上一步" :disabled="(el.enterStep || 0) <= 0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <button class="action-btn" @click.stop="setNextStep($event, el)" title="下一步">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -65,6 +86,48 @@ const onDrop = (e: DragEvent, targetStep: number) => {
     ctx.api.elements.update(id, { enterStep: targetStep });
   }
 };
+
+const setNextStep = (e: Event, el: any) => {
+  e.stopPropagation();
+  ctx.api.elements.update(el.id, { enterStep: (el.enterStep || 0) + 1 });
+};
+
+const setPrevStep = (e: Event, el: any) => {
+  e.stopPropagation();
+  const nextVal = Math.max(0, (el.enterStep || 0) - 1);
+  ctx.api.elements.update(el.id, { enterStep: nextVal });
+};
+
+const DEFAULT_ENTRANCE_ANIMATIONS = [
+  'animate__fadeIn', 'animate__fadeInDown', 'animate__fadeInLeft', 'animate__fadeInRight',
+  'animate__fadeInUp', 'animate__bounceIn', 'animate__bounceInDown', 'animate__bounceInLeft',
+  'animate__bounceInRight', 'animate__bounceInUp', 'animate__zoomIn', 'animate__zoomInDown',
+  'animate__zoomInLeft', 'animate__zoomInRight', 'animate__zoomInUp', 'animate__slideInDown',
+  'animate__slideInLeft', 'animate__slideInRight', 'animate__slideInUp', 'animate__backInDown',
+  'animate__backInLeft', 'animate__backInRight', 'animate__backInUp', 'animate__lightSpeedInRight',
+  'animate__lightSpeedInLeft', 'animate__flipInX', 'animate__flipInY', 'animate__jackInTheBox',
+  'animate__rollIn',
+];
+
+const randomAnimation = (e: Event, el: any) => {
+  e.stopPropagation();
+  const getRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const inAnim = getRandom(DEFAULT_ENTRANCE_ANIMATIONS);
+  const baseStep = el.enterStep || 0;
+  
+  const currentAnimations = Array.isArray(el.animations) ? [...el.animations] : [];
+  currentAnimations.push({
+    id: 'anim_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    type: 'in',
+    animate: inAnim,
+    duration: 1.0,
+    delay: 0,
+    step: baseStep,
+    audio: ''
+  });
+  
+  ctx.api.elements.update(el.id, { animations: currentAnimations });
+};
 </script>
 
 <style scoped>
@@ -113,6 +176,44 @@ const onDrop = (e: DragEvent, targetStep: number) => {
   font-weight: 500;
 }
 
+.el-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.el-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.timeline-element:hover .el-actions {
+  opacity: 1;
+}
+.action-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #868e96;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+.action-btn:hover:not(:disabled) {
+  background: #f1f3f5;
+  color: #495057;
+}
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Dark Theme Overrides */
 .dark, :host-context(.dark) {
   --canvas-panel-bg: #2c2c2c;
@@ -123,6 +224,11 @@ const onDrop = (e: DragEvent, targetStep: number) => {
   --canvas-text-muted: #aaa;
   --canvas-input-bg: #1e1e1e;
 }
-
-
+.dark .action-btn {
+  color: #adb5bd;
+}
+.dark .action-btn:hover:not(:disabled) {
+  background: #3a3a3a;
+  color: #e9ecef;
+}
 </style>
