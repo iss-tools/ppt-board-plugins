@@ -2,7 +2,17 @@ import pptxgen from 'pptxgenjs';
 
 function rgbToHex(color: string): string {
   if (!color) return 'FFFFFF';
-  if (color.startsWith('#')) return color.replace('#', '');
+  if (color.startsWith('#')) {
+    let hex = color.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    } else if (hex.length === 4) {
+      hex = hex.slice(0, 3).split('').map(c => c + c).join('');
+    } else if (hex.length === 8) {
+      hex = hex.slice(0, 6);
+    }
+    return hex.toUpperCase();
+  }
   const rgb = color.match(/\d+/g);
   if (rgb && rgb.length >= 3) {
     return ((1 << 24) + (parseInt(rgb[0]) << 16) + (parseInt(rgb[1]) << 8) + parseInt(rgb[2])).toString(16).slice(1).toUpperCase();
@@ -174,6 +184,10 @@ export async function exportPptx(documentData: any): Promise<void> {
            }
         } else if (el.type === 'HtmlElement') {
            let htmlStr = el.props?.html;
+           if (!htmlStr && el.props?.text) {
+             htmlStr = el.props.text; // Fallback to plain text if no HTML
+           }
+
            if (htmlStr) {
              // PRE-PROCESS: Convert all WebP images (which PowerPoint hates) to PNG
              // This universally catches <img>, CSS background-image, and <svg><image> tags!
@@ -225,12 +239,47 @@ export async function exportPptx(documentData: any): Promise<void> {
                }
              }
 
+             // Helper to parse font size
+             const parseFontSize = (rawFontSize: string | number, scale: number = 1): number => {
+               let fontSize = 18 * pxToPt; // default fallback
+               if (rawFontSize) {
+                 const match = rawFontSize.toString().match(/([\d.]+)(px|pt|em|rem)?/);
+                 if (match) {
+                   const val = parseFloat(match[1]);
+                   const unit = match[2];
+                   if (unit === 'px') fontSize = val * pxToPt;
+                   else if (unit === 'pt') fontSize = (val * 4 / 3) * pxToPt; // CSS 1pt = 4/3px
+                   else if (unit === 'em' || unit === 'rem') fontSize = val * 16 * pxToPt;
+                   else fontSize = val * pxToPt; // assume px
+                 } else if (!isNaN(Number(rawFontSize))) {
+                   fontSize = Number(rawFontSize) * pxToPt;
+                 }
+               }
+               return fontSize * scale;
+             };
+
+             // Helper to find cumulative scale transform
+             const getCumulativeScale = (elNode: HTMLElement): number => {
+               let scale = 1;
+               let current: HTMLElement | null = elNode;
+               while (current) {
+                 if (current.style && current.style.transform) {
+                   const match = current.style.transform.match(/scale\(\s*([\d.]+)/);
+                   if (match) {
+                     scale *= parseFloat(match[1]);
+                   }
+                 }
+                 current = current.parentElement;
+               }
+               return scale;
+             };
+
              // 3. Extract Text
              const textContainers = doc.querySelectorAll('div[data-pptx-editable="true"], span[data-pptx-editable="true"], p[data-pptx-editable="true"]');
              
              // Helper to find inherited inline style since DOMParser has no getComputedStyle
-             const getInheritedStyle = (el: HTMLElement, prop: any): string => {
-               let current: HTMLElement | null = el;
+             const getInheritedStyle = (elNode: HTMLElement, prop: any): string => {
+               let current: HTMLElement | null = elNode;
                while (current) {
                  if (current.style && current.style[prop]) {
                    return current.style[prop];
@@ -240,46 +289,77 @@ export async function exportPptx(documentData: any): Promise<void> {
                return '';
              };
 
+             // Extract alignment from element props if any
+             let defaultAlign = 'center';
+             if (el.props?.textAlign === 'left') defaultAlign = 'left';
+             if (el.props?.textAlign === 'right') defaultAlign = 'right';
+
              if (textContainers.length > 0) {
                const textRuns: any[] = [];
                
                textContainers.forEach(container => {
-                 const el = container as HTMLElement;
-                 const text = el.innerText || el.textContent || '';
-                 if (text.trim()) {
-                   // Extract inline color
-                   const rawColor = getInheritedStyle(el, 'color');
-                   const colorHex = rawColor ? rgbToHex(rawColor) : '000000';
-                   
-                   // Extract inline font size
-                   const rawFontSize = getInheritedStyle(el, 'fontSize');
-                   let fontSize = 18 * pxToPt; // default fallback
-                   if (rawFontSize) {
-                     const match = rawFontSize.match(/([\d.]+)(px|pt|em|rem)?/);
-                     if (match) {
-                       const val = parseFloat(match[1]);
-                       const unit = match[2];
-                       if (unit === 'px') fontSize = val * pxToPt;
-                       else if (unit === 'pt') fontSize = val;
-                       else if (unit === 'em' || unit === 'rem') fontSize = val * 16 * pxToPt;
-                       else fontSize = val * pxToPt; // assume px
+                 const extractTextRuns = (node: Node) => {
+                   if (node.nodeType === Node.TEXT_NODE) {
+                     let text = node.nodeValue || '';
+                     if (text.trim()) {
+                       text = text.replace(/[\r\n\t]+/g, ' '); // collapse formatting whitespace
+                       const elNode = node.parentElement as HTMLElement;
+                       
+                       // Extract inline color
+                       let rawColor = getInheritedStyle(elNode, 'color');
+                       // Handle cases where text color is transparent but it uses a background gradient
+                       if (rawColor === 'transparent') {
+                         const bg = getInheritedStyle(elNode, 'background') || getInheritedStyle(elNode, 'backgroundImage');
+                         if (bg) {
+                           const match = bg.match(/(rgb\([^)]+\)|rgba\([^)]+\)|#[0-9a-fA-F]+)/);
+                           if (match) {
+                             rawColor = match[1];
+                           }
+                         }
+                       }
+                       rawColor = rawColor || el.props?.color;
+                       const colorHex = rawColor ? rgbToHex(rawColor) : '000000';
+                       
+                       // Extract inline font size with fallback to element props
+                       const rawFontSize = getInheritedStyle(elNode, 'fontSize') || (el.props?.fontSize ? `${el.props.fontSize}px` : null);
+                       const scale = getCumulativeScale(elNode);
+                       const fontSize = parseFontSize(rawFontSize, scale);
+
+                       // Extract alignment
+                       const alignRaw = getInheritedStyle(elNode, 'textAlign') || defaultAlign;
+                       let align = 'center';
+                       if (alignRaw === 'left') align = 'left';
+                       if (alignRaw === 'right') align = 'right';
+
+                       textRuns.push({
+                         text: text,
+                         options: { color: colorHex, fontSize: fontSize, align: align }
+                       });
+                     }
+                   } else if (node.nodeType === Node.ELEMENT_NODE) {
+                     const el = node as HTMLElement;
+                     if (el.tagName.toLowerCase() === 'br') {
+                       textRuns.push({ text: '\n', options: {} });
+                     } else {
+                       // recursively process child nodes
+                       node.childNodes.forEach(child => extractTextRuns(child));
                      }
                    }
-
-                   // Extract alignment
-                   const alignRaw = getInheritedStyle(el, 'textAlign') || 'center';
-                   let align = 'center';
-                   if (alignRaw === 'left') align = 'left';
-                   if (alignRaw === 'right') align = 'right';
-
-                   textRuns.push({
-                     text: text,
-                     options: { color: colorHex, fontSize: fontSize, align: align }
-                   });
-                 }
+                 };
+                 
+                 extractTextRuns(container);
+                 // Add a newline after each container if we have multiple block containers? 
+                 // Usually they are distinct elements on canvas, wait, if they are multiple containers found in the same HtmlElement?
+                 // Let's add a newline if textRuns already has content and this container adds more, but wait, addText handles array of runs linearly.
+                 // It's probably better to just add a line break between distinct containers if they are block level.
+                 textRuns.push({ text: '\n', options: {} });
                });
 
                if (textRuns.length > 0) {
+                 // Remove the trailing newline
+                 if (textRuns[textRuns.length - 1].text === '\n') {
+                   textRuns.pop();
+                 }
                  // Pass array to addText to retain rich formatting within the same bounding box
                  slide.addText(textRuns, { x, y, w, h, valign: 'middle' });
                }
@@ -287,9 +367,19 @@ export async function exportPptx(documentData: any): Promise<void> {
                // Fallback: If no editable text tags, grab entire node's raw text
                const text = doc.body.textContent || '';
                if (text.trim()) {
-                 const rawColor = getInheritedStyle(doc.body, 'color');
+                 const rawColor = getInheritedStyle(doc.body, 'color') || el.props?.color;
                  const colorHex = rawColor ? rgbToHex(rawColor) : '000000';
-                 slide.addText(text.trim(), { x, y, w, h, color: colorHex, fontSize: 18 * pxToPt, align: 'center', valign: 'middle' });
+                 
+                 const rawFontSize = getInheritedStyle(doc.body, 'fontSize') || (el.props?.fontSize ? `${el.props.fontSize}px` : null);
+                 const scale = getCumulativeScale(doc.body);
+                 const fontSize = parseFontSize(rawFontSize, scale);
+
+                 const alignRaw = getInheritedStyle(doc.body, 'textAlign') || defaultAlign;
+                 let align = 'center';
+                 if (alignRaw === 'left') align = 'left';
+                 if (alignRaw === 'right') align = 'right';
+
+                 slide.addText(text.trim(), { x, y, w, h, color: colorHex, fontSize: fontSize, align: align, valign: 'middle' });
                }
              }
            }
