@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, computed, ref } from 'vue';
+import { h, computed, ref, onMounted } from 'vue';
 import {
   NConfigProvider,
   NDropdown,
@@ -190,6 +190,54 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const pptxInputRef = ref<HTMLInputElement | null>(null);
 const isHelpOpen = ref(false);
 const isFullscreen = ref(!!document.fullscreenElement);
+
+const deferredPrompt = ref<any>(null);
+const isIOS = ref(false);
+const isStandalone = ref(false);
+
+onMounted(() => {
+  isIOS.value = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+
+  if ((window as any).__deferredPrompt) {
+    deferredPrompt.value = (window as any).__deferredPrompt;
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt.value = e;
+    (window as any).__deferredPrompt = e;
+  });
+});
+
+const canInstall = computed(() => {
+  if (isStandalone.value) return false;
+  return !!deferredPrompt.value || isIOS.value;
+});
+
+const handleInstallApp = async () => {
+  if (isIOS.value) {
+    dialog.info({
+      title: t('menu.installIOS.title'),
+      content: () => h('div', { style: 'display: flex; flex-direction: column; gap: 12px; font-size: 14px;' }, [
+        h('span', null, t('menu.installIOS.desc')),
+        h('ol', { style: 'padding-left: 20px; margin: 0;' }, [
+          h('li', null, t('menu.installIOS.step1')),
+          h('li', null, t('menu.installIOS.step2')),
+          h('li', null, t('menu.installIOS.step3')),
+          h('li', null, t('menu.installIOS.step4'))
+        ])
+      ]),
+      positiveText: t('menu.installIOS.gotIt'),
+    });
+  } else if (deferredPrompt.value) {
+    deferredPrompt.value.prompt();
+    const { outcome } = await deferredPrompt.value.userChoice;
+    if (outcome === 'accepted') {
+      deferredPrompt.value = null;
+    }
+  }
+};
 
 document.addEventListener('fullscreenchange', () => {
   isFullscreen.value = !!document.fullscreenElement;
@@ -229,7 +277,8 @@ const redo = () => {
   }
 };
 
-const mobileOtherOptions = computed(() => [
+const mobileOtherOptions = computed(() => {
+  const options: any[] = [
   {
     label: t('controls.resetZoom') || '100%',
     key: 'reset_zoom',
@@ -285,9 +334,30 @@ const mobileOtherOptions = computed(() => [
       `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`
     ),
   },
-]);
+  ];
+
+  if (canInstall.value) {
+    options.unshift({
+      type: 'divider',
+      key: 'd_install_m',
+    });
+    options.unshift({
+      label: t('menu.installApp') || '安装桌面端 (App)',
+      key: 'install_app',
+      icon: renderRawIcon(
+        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`
+      ),
+    });
+  }
+
+  return options;
+});
 
 const handleOtherSelect = (key: string) => {
+  if (key === 'install_app') {
+    handleInstallApp();
+    return;
+  }
   switch (key) {
     case 'reset_zoom':
       if (ctx.api?.editor?.setScale) ctx.api.editor.setScale(1);
@@ -393,7 +463,8 @@ const sunSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stro
 const moonSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 const monitorSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`;
 
-const menuOptions = computed(() => [
+const menuOptions = computed(() => {
+  const options: any[] = [
   {
     label: t('menu.open'),
     key: 'open',
@@ -719,7 +790,24 @@ const menuOptions = computed(() => [
       );
     },
   },
-]);
+  ];
+
+  if (canInstall.value) {
+    options.unshift({
+      type: 'divider',
+      key: 'd_install_p',
+    });
+    options.unshift({
+      label: t('menu.installApp') || '安装桌面端 (App)',
+      key: 'install_app',
+      icon: renderRawIcon(
+        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`
+      ),
+    });
+  }
+
+  return options;
+});
 
 const handleFileChange = async (e: Event) => {
   const input = e.target as HTMLInputElement;
@@ -869,6 +957,10 @@ const handlePptxChange = async (e: Event) => {
 };
 
 const handleSelect = (key: string | number) => {
+  if (key === 'install_app') {
+    handleInstallApp();
+    return;
+  }
   if (key === 'open') {
     fileInputRef.value?.click();
   } else if (key === 'save') {
