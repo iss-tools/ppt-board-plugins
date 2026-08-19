@@ -6,6 +6,13 @@ export default {
     importPptx: '导入 PPTX',
     exportPptx: '导出 PPTX',
     exportAll: '导出所有数据',
+    scan: '扫一扫',
+    qrTitle: '扫描二维码',
+    qrResult: '扫描结果',
+    qrCopy: '复制内容',
+    qrCopied: '已复制到剪贴板',
+    qrCopyFailed: '复制失败，请手动复制',
+    qrCameraFailed: '无法启动摄像头：',
     installApp: '安装桌面端 (App)',
     installIOS: {
       title: '安装到主屏幕',

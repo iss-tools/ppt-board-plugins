@@ -157,12 +157,17 @@
       </div>
 
       <HelpModal v-model="isHelpOpen" />
+
+      <n-modal v-model:show="showQrScanner" preset="card" :title="t('menu.qrTitle') || '扫描二维码'" style="width: 400px; max-width: 90vw" :on-after-leave="stopScanner">
+        <div id="qr-reader" style="width: 100%; min-height: 250px;"></div>
+      </n-modal>
     </n-config-provider>
   </div>
 </template>
 
 <script setup lang="ts">
-import { h, computed, ref, onMounted } from 'vue';
+import { h, computed, ref, onMounted, nextTick } from 'vue';
+import { Html5Qrcode } from 'html5-qrcode';
 import {
   NConfigProvider,
   NDropdown,
@@ -190,6 +195,63 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const pptxInputRef = ref<HTMLInputElement | null>(null);
 const isHelpOpen = ref(false);
 const isFullscreen = ref(!!document.fullscreenElement);
+
+const showQrScanner = ref(false);
+let html5QrCode: Html5Qrcode | null = null;
+
+const stopScanner = async () => {
+  if (html5QrCode) {
+    try {
+      await html5QrCode.stop();
+    } catch (e) {}
+    try {
+      html5QrCode.clear();
+    } catch(e) {}
+    html5QrCode = null;
+  }
+};
+
+const handleQrCodeResult = (text: string) => {
+  if (text.startsWith(window.location.origin) || (text.startsWith('/') && !text.startsWith('//'))) {
+    window.location.href = text;
+  } else {
+    dialog.success({
+      title: t('menu.qrResult') || '扫描结果',
+      content: text,
+      positiveText: t('menu.qrCopy') || '复制内容',
+      onPositiveClick: () => {
+        navigator.clipboard.writeText(text).then(() => {
+          message.success(t('menu.qrCopied') || '已复制到剪贴板');
+        }).catch(() => {
+          message.error(t('menu.qrCopyFailed') || '复制失败，请手动复制');
+        });
+      }
+    });
+  }
+};
+
+const startScanner = async () => {
+  showQrScanner.value = true;
+  await nextTick();
+  html5QrCode = new Html5Qrcode("qr-reader");
+  
+  try {
+    await html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        stopScanner();
+        showQrScanner.value = false;
+        handleQrCodeResult(decodedText);
+      },
+      (errorMessage) => {
+        // parse error, ignore
+      }
+    );
+  } catch (err) {
+    message.error((t('menu.qrCameraFailed') || '无法启动摄像头：') + err);
+  }
+};
 
 const deferredPrompt = ref<any>(null);
 const isIOS = ref(false);
@@ -336,6 +398,14 @@ const mobileOtherOptions = computed(() => {
   },
   ];
 
+  options.unshift({
+    label: t('menu.scan') || '扫一扫',
+    key: 'scan_qr',
+    icon: renderRawIcon(
+      `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><rect x="7" y="7" width="10" height="10"></rect></svg>`
+    ),
+  });
+
   if (canInstall.value) {
     options.unshift({
       type: 'divider',
@@ -354,6 +424,10 @@ const mobileOtherOptions = computed(() => {
 });
 
 const handleOtherSelect = (key: string) => {
+  if (key === 'scan_qr') {
+    startScanner();
+    return;
+  }
   if (key === 'install_app') {
     handleInstallApp();
     return;

@@ -2,10 +2,17 @@ export default {
   menu: {
     open: 'Open',
     saveTo: 'Save to...',
-    export: 'Export image...',
+    export: 'Export as Image...',
     importPptx: 'Import PPTX',
     exportPptx: 'Export PPTX',
     exportAll: 'Export All Data',
+    scan: 'Scan QR Code',
+    qrTitle: 'Scan QR Code',
+    qrResult: 'Scan Result',
+    qrCopy: 'Copy Content',
+    qrCopied: 'Copied to clipboard',
+    qrCopyFailed: 'Failed to copy, please copy manually',
+    qrCameraFailed: 'Failed to start camera: ',
     installApp: 'Install Desktop App',
     installIOS: {
       title: 'Add to Home Screen',
