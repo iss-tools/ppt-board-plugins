@@ -1,4 +1,6 @@
 import pptxgen from 'pptxgenjs';
+// @ts-ignore
+import domtoimage from '../../../../vue-canvas-core/src/utils/dom-to-image';
 
 function rgbToHex(color: string): string {
   if (!color) return 'FFFFFF';
@@ -18,6 +20,37 @@ function rgbToHex(color: string): string {
     return ((1 << 24) + (parseInt(rgb[0]) << 16) + (parseInt(rgb[1]) << 8) + parseInt(rgb[2])).toString(16).slice(1).toUpperCase();
   }
   return 'FFFFFF';
+}
+
+function parseTextShadow(textShadow: string) {
+  if (!textShadow || textShadow === 'none') return null;
+  const colorMatch = textShadow.match(/(rgb\([^)]+\)|rgba\([^)]+\)|#[0-9a-fA-F]+|[a-zA-Z]+)/);
+  if (!colorMatch) return null;
+  
+  const colorStr = colorMatch[0];
+  const hex = rgbToHex(colorStr);
+  let opacity = 1;
+  const rgbaMatch = colorStr.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
+  if (rgbaMatch) opacity = parseFloat(rgbaMatch[1]);
+
+  const numStr = textShadow.replace(colorStr, '');
+  const nums = numStr.match(/-?[\d.]+/g);
+  if (nums && nums.length >= 2) {
+    const x = parseFloat(nums[0]);
+    const y = parseFloat(nums[1]);
+    const blur = nums.length >= 3 ? parseFloat(nums[2]) : 0;
+    
+    if (x === 0 && y === 0 && blur > 0) {
+      return { glow: { size: blur, color: hex, opacity: opacity } };
+    } else {
+      const angleRad = Math.atan2(y, x);
+      let angleDeg = angleRad * 180 / Math.PI;
+      if (angleDeg < 0) angleDeg += 360;
+      const offset = Math.sqrt(x*x + y*y);
+      return { shadow: { type: 'outer', color: hex, blur: blur, offset: offset, angle: Math.round(angleDeg), opacity: opacity } };
+    }
+  }
+  return null;
 }
 
 async function svgToPng(svgStr: string, width: number, height: number): Promise<string> {
@@ -127,23 +160,79 @@ export async function exportPptx(documentData: any): Promise<void> {
         const h = (el.height || 100) * scaleY;
         const pxToPt = scaleX * 72; // Convert canvas pixels to typographic points (1 inch = 72 pt)
 
-        if (el.type === 'text') {
-          const text = el.props?.text || '';
-          slide.addText(text.replace(/<[^>]+>/g, ''), {
-            x, y, w, h,
-            color: rgbToHex(el.props?.fill),
-            fontSize: (el.props?.fontSize || 24) * pxToPt
-          });
-        } else if (el.type === 'shape') {
-          const shapeType = el.props?.shapeType === 'circle' ? pptx.ShapeType.ellipse : pptx.ShapeType.rect;
-          slide.addShape(shapeType, {
-            x, y, w, h,
-            fill: { color: rgbToHex(el.props?.fill) }
-          });
+        const textTags = ['text', 'TextElement', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div', 'a', 'strong', 'em', 'label'];
+        if (textTags.includes(el.type)) {
           
-          if (el.props?.text) {
-             slide.addText(el.props.text.replace(/<[^>]+>/g, ''), {
-                x, y, w, h, align: 'center', valign: 'middle'
+          let text = el.props?.text;
+          if (!text && el.slots?.default) {
+             text = typeof el.slots.default === 'string' ? el.slots.default : '';
+          }
+          text = text || '';
+          
+          const textShadowRaw = el.props?.textShadow || (el.props?.style as any)?.textShadow;
+          const shadowEffect = parseTextShadow(textShadowRaw);
+          const fontWeight = el.props?.fontWeight || (el.props?.style as any)?.fontWeight;
+          const fontStyle = el.props?.fontStyle || (el.props?.style as any)?.fontStyle;
+          const textDeco = el.props?.textDecoration || (el.props?.style as any)?.textDecoration;
+          
+          let alignRaw = el.props?.textAlign || (el.props?.style as any)?.textAlign || 'center';
+          let align = 'center';
+          if (alignRaw === 'left') align = 'left';
+          if (alignRaw === 'right') align = 'right';
+
+          let valignRaw = el.props?.verticalAlign || (el.props?.style as any)?.verticalAlign || 'middle';
+          let valign = 'middle';
+          if (valignRaw === 'top') valign = 'top';
+          if (valignRaw === 'bottom') valign = 'bottom';
+
+          const textOpts: any = {
+            x, y, w, h,
+            color: rgbToHex(el.props?.color || el.props?.fill || (el.props?.style as any)?.color || '#000000'),
+            fontSize: (el.props?.fontSize || 24) * pxToPt,
+            align: align,
+            valign: valign,
+            bold: fontWeight === 'bold' || Number(fontWeight) >= 600,
+            italic: fontStyle === 'italic',
+            underline: textDeco === 'underline' || textDeco?.includes('underline'),
+            strike: textDeco === 'line-through' || textDeco?.includes('line-through')
+          };
+
+          if (shadowEffect) {
+            if (shadowEffect.glow) textOpts.glow = shadowEffect.glow;
+            if (shadowEffect.shadow) textOpts.shadow = shadowEffect.shadow;
+          }
+
+          slide.addText(text.replace(/<[^>]+>/g, ''), textOpts);
+        } else if (el.type === 'shape' || el.type === 'RoughElement') {
+          let shapeType = pptx.ShapeType.rect;
+          const shapeProp = el.props?.shape || el.props?.shapeType;
+          if (shapeProp === 'circle' || shapeProp === 'ellipse') shapeType = pptx.ShapeType.ellipse;
+          else if (shapeProp === 'diamond') shapeType = pptx.ShapeType.diamond;
+          else if (shapeProp === 'line' || shapeProp === 'arrow' || shapeProp === 'pen') shapeType = pptx.ShapeType.line;
+
+          let fillStr = el.props?.fill || (el.props?.style as any)?.backgroundColor || (el.props?.style as any)?.['background-color'] || (el.props?.style as any)?.background;
+          if (fillStr === 'transparent' || fillStr === 'none') fillStr = null;
+          
+          let strokeStr = el.props?.stroke || (el.props?.style as any)?.borderColor || (el.props?.style as any)?.color;
+          if (strokeStr === 'transparent' || strokeStr === 'none' || strokeStr === 'currentColor') strokeStr = null;
+
+          const shapeOpts: any = { x, y, w, h };
+          if (fillStr) shapeOpts.fill = { color: rgbToHex(fillStr) };
+          if (strokeStr) shapeOpts.line = { color: rgbToHex(strokeStr), width: el.props?.strokeWidth || 1.5 };
+
+          slide.addShape(shapeType, shapeOpts);
+          
+          let text = el.props?.text;
+          if (!text && el.slots?.default) {
+            // RoughElement might pass text via default slot (e.g., if using nested TextElement, though usually it's just raw text props in json data)
+            text = typeof el.slots.default === 'string' ? el.slots.default : '';
+          }
+          
+          if (text) {
+             slide.addText(text.replace(/<[^>]+>/g, ''), {
+                x, y, w, h, align: 'center', valign: 'middle',
+                color: rgbToHex((el.props?.style as any)?.color || '#000000'),
+                fontSize: 18 * pxToPt // fallback font size for shapes
              });
           }
         } else if (el.type === 'image') {
@@ -163,11 +252,7 @@ export async function exportPptx(documentData: any): Promise<void> {
             const headers = source[0].slice(1);
             const chartData = [];
             for (let i = 1; i < headers.length + 1; i++) {
-               const series = {
-                 name: headers[i-1],
-                 labels: [],
-                 values: []
-               };
+              let series: any = { name: headers[i-1], labels: [], values: [] };
                for (let j = 1; j < source.length; j++) {
                  series.labels.push(source[j][0]);
                  series.values.push(Number(source[j][i]) || 0);
@@ -191,9 +276,9 @@ export async function exportPptx(documentData: any): Promise<void> {
            if (htmlStr) {
              // PRE-PROCESS: Convert all WebP images (which PowerPoint hates) to PNG
              // This universally catches <img>, CSS background-image, and <svg><image> tags!
-             const webpMatches = htmlStr.match(/data:image\/webp;base64,[A-Za-z0-9+/=]+/g) || [];
-             const uniqueWebps = [...new Set(webpMatches)];
-             for (const webp of uniqueWebps) {
+             const webpMatches = htmlStr.match(/data:image\/webp[^"']+/g) || [];
+             const uniqueWebps = Array.from(new Set(webpMatches));
+             for (const webp of uniqueWebps as string[]) {
                const png = await ensurePng(webp);
                htmlStr = htmlStr.split(webp).join(png);
              }
@@ -219,23 +304,6 @@ export async function exportPptx(documentData: any): Promise<void> {
                  if (match && match[1]) {
                    slide.addImage({ data: match[1], x, y, w, h });
                  }
-               }
-             }
-
-             // 2. Extract SVGs (Convert to PNG for PowerPoint compatibility)
-             const svgs = doc.querySelectorAll('svg');
-             for (let i = 0; i < svgs.length; i++) {
-               try {
-                 const svg = svgs[i];
-                 const svgStr = new XMLSerializer().serializeToString(svg);
-                 // PPTX dimensions are in inches. 
-                 // We previously used 400 DPI which caused massive file bloat (13.5MB+).
-                 // 192 DPI (exactly 2x 96) produces 1920x1080 resolution for a full 10-inch slide, 
-                 // which matches HD screens perfectly while keeping file size reasonable.
-                 const pngSrc = await svgToPng(svgStr, w * 192, h * 192);
-                 slide.addImage({ data: pngSrc, x, y, w, h });
-               } catch (e) {
-                 console.warn('[pptx-export] Failed to serialize SVG', e);
                }
              }
 
@@ -274,6 +342,70 @@ export async function exportPptx(documentData: any): Promise<void> {
                return scale;
              };
 
+             // Helper to find absolute bounds of an element within the root HtmlElement
+             const getElementBounds = (elNode: HTMLElement, defaultX: number, defaultY: number, defaultW: number, defaultH: number) => {
+               let left = 0;
+               let top = 0;
+               let elW = 0;
+               let elH = 0;
+               let scale = 1;
+               let foundWidth = false;
+               let foundHeight = false;
+
+               let current: HTMLElement | null = elNode;
+               while (current) {
+                 if (current.style) {
+                   if (current.style.left) left += parseFloat(current.style.left) || 0;
+                   if (current.style.top) top += parseFloat(current.style.top) || 0;
+                   
+                   if (!foundWidth && current.style.width && current.style.width.endsWith('px')) {
+                     elW = parseFloat(current.style.width);
+                     foundWidth = true;
+                   }
+                   if (!foundHeight && current.style.height && current.style.height.endsWith('px')) {
+                     elH = parseFloat(current.style.height);
+                     foundHeight = true;
+                   }
+
+                   if (current.style.transform) {
+                     const match = current.style.transform.match(/scale\(\s*([\d.]+)/);
+                     if (match) {
+                       const s = parseFloat(match[1]);
+                       scale *= s;
+                       left *= s;
+                       top *= s;
+                     }
+                   }
+                 }
+                 current = current.parentElement;
+               }
+
+               const finalX = defaultX + (left * scaleX);
+               const finalY = defaultY + (top * scaleY);
+               const finalW = foundWidth ? (elW * scale * scaleX) : defaultW;
+               const finalH = foundHeight ? (elH * scale * scaleY) : defaultH;
+
+               return { x: finalX, y: finalY, w: finalW, h: finalH };
+             };
+
+             // 2. Extract SVGs (Convert to PNG for PowerPoint compatibility)
+             const svgs = doc.querySelectorAll('svg');
+             for (let i = 0; i < svgs.length; i++) {
+               try {
+                 const svg = svgs[i];
+                 const bounds = getElementBounds(svg.parentElement as HTMLElement || svg, x, y, w, h);
+                 const svgStr = new XMLSerializer().serializeToString(svg);
+                 // PPTX dimensions are in inches. 
+                 // We previously used 400 DPI which caused massive file bloat (13.5MB+).
+                 // 192 DPI (exactly 2x 96) produces 1920x1080 resolution for a full 10-inch slide, 
+                 // which matches HD screens perfectly while keeping file size reasonable.
+                 const pngSrc = await svgToPng(svgStr, bounds.w * 192, bounds.h * 192);
+                 slide.addImage({ data: pngSrc, x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h });
+               } catch (e) {
+                 console.warn('[pptx-export] Failed to serialize SVG', e);
+               }
+             }
+
              // 3. Extract Text
              const textContainers = doc.querySelectorAll('div[data-pptx-editable="true"], span[data-pptx-editable="true"], p[data-pptx-editable="true"]');
              
@@ -290,14 +422,14 @@ export async function exportPptx(documentData: any): Promise<void> {
              };
 
              // Extract alignment from element props if any
-             let defaultAlign = 'center';
+             let defaultAlign: any = 'center';
              if (el.props?.textAlign === 'left') defaultAlign = 'left';
              if (el.props?.textAlign === 'right') defaultAlign = 'right';
 
              if (textContainers.length > 0) {
-               const textRuns: any[] = [];
-               
                textContainers.forEach(container => {
+                 const textRuns: any[] = [];
+                 
                  const extractTextRuns = (node: Node) => {
                    if (node.nodeType === Node.TEXT_NODE) {
                      let text = node.nodeValue || '';
@@ -323,17 +455,39 @@ export async function exportPptx(documentData: any): Promise<void> {
                        // Extract inline font size with fallback to element props
                        const rawFontSize = getInheritedStyle(elNode, 'fontSize') || (el.props?.fontSize ? `${el.props.fontSize}px` : null);
                        const scale = getCumulativeScale(elNode);
-                       const fontSize = parseFontSize(rawFontSize, scale);
+                       const fontSize = parseFontSize(rawFontSize as string, scale);
 
                        // Extract alignment
                        const alignRaw = getInheritedStyle(elNode, 'textAlign') || defaultAlign;
-                       let align = 'center';
+                       let align: any = 'center';
                        if (alignRaw === 'left') align = 'left';
                        if (alignRaw === 'right') align = 'right';
 
+                       // Extract additional text styling (bold, italic, underline, strike, shadow, glow)
+                       const fontWeight = getInheritedStyle(elNode, 'fontWeight');
+                       const fontStyle = getInheritedStyle(elNode, 'fontStyle');
+                       const textDeco = getInheritedStyle(elNode, 'textDecoration');
+                       const textShadowRaw = getInheritedStyle(elNode, 'textShadow');
+                       const shadowEffect = parseTextShadow(textShadowRaw);
+
+                       const textOpts: any = {
+                         color: colorHex,
+                         fontSize: fontSize,
+                         align: align,
+                         bold: fontWeight === 'bold' || Number(fontWeight) >= 600,
+                         italic: fontStyle === 'italic',
+                         underline: textDeco === 'underline' || textDeco?.includes('underline'),
+                         strike: textDeco === 'line-through' || textDeco?.includes('line-through')
+                       };
+
+                       if (shadowEffect) {
+                         if (shadowEffect.glow) textOpts.glow = shadowEffect.glow;
+                         if (shadowEffect.shadow) textOpts.shadow = shadowEffect.shadow;
+                       }
+
                        textRuns.push({
                          text: text,
-                         options: { color: colorHex, fontSize: fontSize, align: align }
+                         options: textOpts
                        });
                      }
                    } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -348,21 +502,16 @@ export async function exportPptx(documentData: any): Promise<void> {
                  };
                  
                  extractTextRuns(container);
-                 // Add a newline after each container if we have multiple block containers? 
-                 // Usually they are distinct elements on canvas, wait, if they are multiple containers found in the same HtmlElement?
-                 // Let's add a newline if textRuns already has content and this container adds more, but wait, addText handles array of runs linearly.
-                 // It's probably better to just add a line break between distinct containers if they are block level.
-                 textRuns.push({ text: '\n', options: {} });
-               });
-
-               if (textRuns.length > 0) {
-                 // Remove the trailing newline
-                 if (textRuns[textRuns.length - 1].text === '\n') {
-                   textRuns.pop();
+                 
+                 if (textRuns.length > 0) {
+                   const bounds = getElementBounds(container as HTMLElement, x, y, w, h);
+                   // Remove the trailing newline if any
+                   if (textRuns[textRuns.length - 1].text === '\n') {
+                     textRuns.pop();
+                   }
+                   slide.addText(textRuns, { x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h, valign: 'middle' });
                  }
-                 // Pass array to addText to retain rich formatting within the same bounding box
-                 slide.addText(textRuns, { x, y, w, h, valign: 'middle' });
-               }
+               });
              } else {
                // Fallback: If no editable text tags, grab entire node's raw text
                const text = doc.body.textContent || '';
@@ -372,16 +521,39 @@ export async function exportPptx(documentData: any): Promise<void> {
                  
                  const rawFontSize = getInheritedStyle(doc.body, 'fontSize') || (el.props?.fontSize ? `${el.props.fontSize}px` : null);
                  const scale = getCumulativeScale(doc.body);
-                 const fontSize = parseFontSize(rawFontSize, scale);
+                 const fontSize = parseFontSize(rawFontSize as string, scale);
 
                  const alignRaw = getInheritedStyle(doc.body, 'textAlign') || defaultAlign;
                  let align = 'center';
                  if (alignRaw === 'left') align = 'left';
                  if (alignRaw === 'right') align = 'right';
 
-                 slide.addText(text.trim(), { x, y, w, h, color: colorHex, fontSize: fontSize, align: align, valign: 'middle' });
+                 slide.addText(text.trim(), { x, y, w, h, color: colorHex, fontSize: fontSize, align: align as any, valign: 'middle' });
                }
              }
+           }
+        } else {
+           try {
+             const domNode = document.querySelector(`[data-element-id="${el.id}"]`);
+             if (domNode) {
+               const scale = 2;
+               const style = {
+                 transform: `scale(${scale})`,
+                 transformOrigin: 'top left',
+                 width: domNode.clientWidth + 'px',
+                 height: domNode.clientHeight + 'px'
+               };
+               const pngData = await domtoimage.toPng(domNode, {
+                 height: domNode.clientHeight * scale,
+                 width: domNode.clientWidth * scale,
+                 style: style
+               });
+               slide.addImage({ data: pngData, x, y, w, h });
+             } else {
+                 console.warn(`[pptx-export] Could not find DOM node for element ${el.id} (${el.type}) to perform dom-to-image fallback.`);
+             }
+           } catch (e) {
+             console.error(`[pptx-export] Fallback dom-to-image failed for element ${el.id}`, e);
            }
         }
       }

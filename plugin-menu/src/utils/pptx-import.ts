@@ -63,7 +63,8 @@ async function blobUrlToBase64(blobUrl: string): Promise<string> {
 
 export async function importPptx(file: File): Promise<any> {
   try {
-    const ppt = await parseZip(file);
+    const buffer = await file.arrayBuffer();
+    const ppt = await parseZip(buffer);
     const pres = await buildPresentation(ppt);
     console.log('[pptx-import] Parsed PPTX with pptx-renderer:', pres);
 
@@ -234,9 +235,9 @@ export async function importPptx(file: File): Promise<any> {
       for (const element of elements) {
         if (element.props && element.props.html && element.props.html.includes('blob:')) {
           const blobUrls = element.props.html.match(/blob:https?:\/\/[^\s"'<>\)]+/g) || [];
-          const uniqueUrls = [...new Set(blobUrls)];
+          const uniqueUrls = Array.from(new Set(blobUrls));
           let htmlStr = element.props.html;
-          for (const url of uniqueUrls) {
+          for (const url of uniqueUrls as string[]) {
             const base64 = await blobUrlToBase64(url);
             // Replace all occurrences of this blob URL in the string
             htmlStr = htmlStr.split(url).join(base64);
