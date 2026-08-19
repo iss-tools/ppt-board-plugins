@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-my-library",
   "description": "Personal asset library, material drawer, and Excalidraw package parser.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "iss-tools",
   "keywords": [
     "utils",
@@ -107,10 +107,10 @@
     "vite-plugin-dts": "^3.7.0",
     "vue": "^3.0.0",
     "vue-tsc": "^2.1.10",
-    "@iss-ai/ppt-board": "^0.0.8"
+    "@iss-ai/ppt-board": "^0.0.9"
   },
   "peerDependencies": {
-    "@iss-ai/ppt-board": "^0.0.8",
+    "@iss-ai/ppt-board": "^0.0.9",
     "vue": "^3.0.0"
   }
 }
