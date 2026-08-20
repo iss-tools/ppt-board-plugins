@@ -1,7 +1,7 @@
 {
   "name": "@iss-ai/plugin-cooperation",
   "description": "Real-time collaboration, cursor tracking, and state sync via Ably & WebRTC.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "iss-tools",
   "keywords": [
     "utils",
