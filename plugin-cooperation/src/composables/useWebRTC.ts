@@ -9,9 +9,12 @@ export interface WebRTCPeer {
 
 export function useWebRTC(onDataReceived: (clientId: string, data: any) => void) {
   const peers = ref<Map<string, WebRTCPeer>>(new Map());
+  const earlyCandidates = new Map<string, RTCIceCandidateInit[]>();
 
   const rtcConfig: RTCConfiguration = {
     iceServers: [
+      { urls: 'stun:stun.qq.com:3478' },
+      { urls: 'stun:stun.miwifi.com:3478' },
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' }
     ]
@@ -103,25 +106,65 @@ export function useWebRTC(onDataReceived: (clientId: string, data: any) => void)
     sendAnswer: (answer: RTCSessionDescriptionInit) => void,
     sendCandidate: (candidate: RTCIceCandidate) => void
   ) => {
+    console.log(`[WebRTC] handleOffer from ${clientId}`);
     const peer = getOrCreatePeer(clientId, sendOffer => {}, sendCandidate);
     await peer.pc.setRemoteDescription(new RTCSessionDescription(offer));
-    
+
     const answer = await peer.pc.createAnswer();
     await peer.pc.setLocalDescription(answer);
+
+    const candidates = earlyCandidates.get(clientId) || [];
+    console.log(`[WebRTC] Flushing ${candidates.length} early candidates for ${clientId} in handleOffer`);
+    for (const c of candidates) {
+      try {
+        await peer.pc.addIceCandidate(new RTCIceCandidate(c));
+        console.log(`[WebRTC] Added early candidate in handleOffer:`, c);
+      } catch (e) {
+        console.error('[WebRTC] Early candidate error in handleOffer:', e);
+      }
+    }
+    earlyCandidates.delete(clientId);
+
     sendAnswer(answer);
   };
 
   const handleAnswer = async (clientId: string, answer: RTCSessionDescriptionInit) => {
+    console.log(`[WebRTC] handleAnswer from ${clientId}`);
     const peer = peers.value.get(clientId);
     if (peer && peer.pc.signalingState !== 'stable') {
       await peer.pc.setRemoteDescription(new RTCSessionDescription(answer));
+      
+      const candidates = earlyCandidates.get(clientId) || [];
+      console.log(`[WebRTC] Flushing ${candidates.length} early candidates for ${clientId} in handleAnswer`);
+      for (const c of candidates) {
+        try {
+          await peer.pc.addIceCandidate(new RTCIceCandidate(c));
+          console.log(`[WebRTC] Added early candidate in handleAnswer:`, c);
+        } catch (e) {
+          console.error('[WebRTC] Early candidate error in handleAnswer:', e);
+        }
+      }
+      earlyCandidates.delete(clientId);
+    } else {
+      console.warn(`[WebRTC] Ignored handleAnswer for ${clientId}, signalingState:`, peer?.pc.signalingState);
     }
   };
 
   const handleCandidate = async (clientId: string, candidate: RTCIceCandidateInit) => {
     const peer = peers.value.get(clientId);
-    if (peer) {
-      await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    if (peer && peer.pc.remoteDescription) {
+      try {
+        await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log(`[WebRTC] Added real-time candidate for ${clientId}:`, candidate);
+      } catch (e) {
+        console.error('[WebRTC] Candidate error:', e);
+      }
+    } else {
+      console.log(`[WebRTC] Buffering early candidate for ${clientId}`);
+      if (!earlyCandidates.has(clientId)) {
+        earlyCandidates.set(clientId, []);
+      }
+      earlyCandidates.get(clientId)!.push(candidate);
     }
   };
 

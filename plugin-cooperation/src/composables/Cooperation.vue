@@ -456,6 +456,9 @@ function handleStartSession() {
   // Host always starts as 'edit' mode
   ablySync.connect(channelId, localKey.value, 'edit');
 
+  // Update URL so refreshing the page keeps the host in the room
+  window.history.replaceState(null, '', `#?session=${channelId}&key=${localKey.value}&role=edit`);
+
   // Close small popup and open big modal
   showWindow.value = false;
   showSessionModal.value = true;
@@ -466,6 +469,10 @@ function disconnectAndClose() {
   // Generate a new random key for the next session
   localKey.value =
     Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+  
+  // Clear URL hash
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  
   showSessionModal.value = false;
 }
 
