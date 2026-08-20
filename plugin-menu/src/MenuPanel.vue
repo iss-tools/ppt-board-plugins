@@ -214,6 +214,7 @@ const stopScanner = async () => {
 const handleQrCodeResult = (text: string) => {
   if (text.startsWith(window.location.origin) || (text.startsWith('/') && !text.startsWith('//'))) {
     window.location.href = text;
+    window.location.reload();
   } else {
     dialog.success({
       title: t('menu.qrResult') || '扫描结果',
