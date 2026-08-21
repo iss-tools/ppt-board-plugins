@@ -893,6 +893,7 @@ const formatRelativeTime = (ts: number) => {
   flex-direction: column;
   pointer-events: auto;
   z-index: 1001;
+  overflow: scroll;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -913,6 +914,7 @@ const formatRelativeTime = (ts: number) => {
   border-radius: 8px;
   padding: 6px 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .close-btn {
@@ -938,6 +940,7 @@ const formatRelativeTime = (ts: number) => {
   outline: none;
   font-size: 13px;
   color: var(--remark-text);
+  min-width: 0;
 }
 
 .shortcut-hint {
@@ -972,6 +975,7 @@ const formatRelativeTime = (ts: number) => {
   cursor: pointer;
   color: var(--remark-text-secondary);
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 .icon-btn:hover {
